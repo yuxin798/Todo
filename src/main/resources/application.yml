@@ -9,6 +9,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
   data:
     redis:
       host: 8.130.17.7
@@ -22,14 +23,57 @@ spring:
           max-wait: 60000ms
           max-idle: 8
           min-idle: 0
+
+  servlet:
+    multipart:
+      max-file-size: 1000MB
+      max-request-size: 1000MB
+
 logging:
   level:
     com.example: debug
 mybatis-plus:
-  global-config:
-    db-config:
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+trust:
+  minio:
+    endpoint: http://8.130.17.7:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: campus-bucket
+    allowed-content-type:
+      "[image/png]": png
+      "[image/jpg]": jpg
+      "[image/jpeg]": jpeg
+      "[image/gif]": gif
+      "[video/mp4]": mp4
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: '落花'
+      paths-to-match: '/**'
+      #生成文档所需的扫包路径，一般为启动类目录
+      packages-to-scan: com.trust
+
+#knife4j配置
+knife4j:
+  #是否启用增强设置
+  enable: true
+  #开启生产环境屏蔽
+  production: false
+  #是否启用登录认证
+  basic:
+    enable: false
+  setting:
+    language: zh_cn
+    enable-version: true
+    enable-swagger-models: true
+    swagger-model-name: 用户模块
 
