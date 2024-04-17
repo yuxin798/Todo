@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.todo.mapper.TaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.todo.entity.Task">
+            <id property="taskId" column="task_id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="taskName" column="task_name" jdbcType="VARCHAR"/>
+            <result property="estimate" column="estimate" jdbcType="VARCHAR"/>
+            <result property="tomatoClockTimes" column="tomato_clock_times" jdbcType="INTEGER"/>
+            <result property="stopTimes" column="stop_times" jdbcType="INTEGER"/>
+            <result property="taskStatus" column="task_status" jdbcType="TINYINT"/>
+            <result property="innerInterrupt" column="inner_interrupt" jdbcType="INTEGER"/>
+            <result property="outerInterrupt" column="outer_interrupt" jdbcType="INTEGER"/>
+            <result property="startedAt" column="started_at" jdbcType="TIMESTAMP"/>
+            <result property="completedAt" column="completed_at" jdbcType="TIMESTAMP"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+            <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
+            <result property="deleted" column="deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        task_id,user_id,task_name,
+        estimate,tomato_clock_times,stop_times,
+        task_status,inner_interrupt,outer_interrupt,
+        started_at,completed_at,created_at,
+        updated_at,deleted
+    </sql>
+</mapper>

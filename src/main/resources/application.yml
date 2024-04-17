@@ -60,7 +60,7 @@ springdoc:
     - group: '落花'
       paths-to-match: '/**'
       #生成文档所需的扫包路径，一般为启动类目录
-      packages-to-scan: com.trust
+      packages-to-scan: com.todo
 
 #knife4j配置
 knife4j:

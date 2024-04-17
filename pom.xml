@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.trust</groupId>
-    <artifactId>Trust</artifactId>
+    <artifactId>Todo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Trust</name>
     <description>Trust</description>
@@ -17,6 +17,12 @@
         <java.version>17</java.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
 <!--        web服务-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
