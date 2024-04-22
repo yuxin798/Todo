@@ -3,23 +3,33 @@ package com.todo.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 
+ * 自习室表
  * @TableName room
  */
 @TableName(value ="room")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Room implements Serializable {
     /**
      * 
      */
     @TableId(value = "room_id")
     private Long roomId;
+
+    /**
+     * 
+     */
+    @TableField(value = "user_id")
+    private Long userId;
 
     /**
      * 
@@ -54,6 +64,12 @@ public class Room implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
+    public Room(Long userId, String roomName, String roomAvatar) {
+        this.userId = userId;
+        this.roomName = roomName;
+        this.roomAvatar = roomAvatar;
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
@@ -67,6 +83,7 @@ public class Room implements Serializable {
         }
         Room other = (Room) that;
         return (this.getRoomId() == null ? other.getRoomId() == null : this.getRoomId().equals(other.getRoomId()))
+            && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
             && (this.getRoomName() == null ? other.getRoomName() == null : this.getRoomName().equals(other.getRoomName()))
             && (this.getRoomAvatar() == null ? other.getRoomAvatar() == null : this.getRoomAvatar().equals(other.getRoomAvatar()))
             && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
@@ -79,6 +96,7 @@ public class Room implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getRoomId() == null) ? 0 : getRoomId().hashCode());
+        result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
         result = prime * result + ((getRoomName() == null) ? 0 : getRoomName().hashCode());
         result = prime * result + ((getRoomAvatar() == null) ? 0 : getRoomAvatar().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
@@ -94,6 +112,7 @@ public class Room implements Serializable {
         sb.append(" [");
         sb.append("Hash = ").append(hashCode());
         sb.append(", roomId=").append(roomId);
+        sb.append(", userId=").append(userId);
         sb.append(", roomName=").append(roomName);
         sb.append(", roomAvatar=").append(roomAvatar);
         sb.append(", createdAt=").append(createdAt);

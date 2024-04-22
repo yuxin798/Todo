@@ -6,6 +6,7 @@
 
     <resultMap id="BaseResultMap" type="com.todo.entity.Room">
             <id property="roomId" column="room_id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="roomName" column="room_name" jdbcType="VARCHAR"/>
             <result property="roomAvatar" column="room_avatar" jdbcType="VARCHAR"/>
             <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
@@ -14,7 +15,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        room_id,room_name,room_avatar,
-        created_at,updated_at,deleted
+        room_id,user_id,room_name,
+        room_avatar,created_at,updated_at,
+        deleted
     </sql>
 </mapper>

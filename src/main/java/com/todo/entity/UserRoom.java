@@ -54,6 +54,11 @@ public class UserRoom implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
+    public UserRoom(Long userId, Long roomId) {
+        this.userId = userId;
+        this.roomId = roomId;
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
