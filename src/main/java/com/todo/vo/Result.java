@@ -26,6 +26,7 @@ public class Result<T> {
         Result<T> result = new Result<>();
         result.setCode("200");
         result.setMsg("成功");
+        result.setData(null);
         return result;
     }
 

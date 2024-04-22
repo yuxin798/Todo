@@ -56,9 +56,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     }
 
     @Override
-    public String generateInvitationCode(RoomDto roomDto) {
+    public String generateInvitationCode(Long roomId) {
         User user = UserContextUtil.getUser();
-        Room room = baseMapper.selectById(roomDto.getRoomId());
+        Room room = baseMapper.selectById(roomId);
 
         // roomDto的信息用户是可以篡改的
         if (!user.getUserId().equals(room.getUserId())) {
@@ -66,13 +66,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         }
 
         // 检查是否已经有邀请码了
-        String code = (String) redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_ID + roomDto.getRoomId());
+        String code = (String) redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_ID + roomId);
 
         if (!StringUtils.hasText(code)) {
             // 没有邀请码
             code = "ToDo@" + RandomUtil.randomString(11);
-            redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_CODE + code, roomDto.getRoomId(), 7, TimeUnit.DAYS);
-            redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_ID + roomDto.getRoomId(), code, 7, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_CODE + code, roomId, 7, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_ID + roomId, code, 7, TimeUnit.DAYS);
         }
 
         return code;
@@ -82,7 +82,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     public void acceptInvitation(String invitationCode) {
         User user = UserContextUtil.getUser();
         Long roomId = (Long) redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + invitationCode);
-
+        if(roomId == null){
+            throw new RuntimeException("邀请码不存在");
+        }
         userRoomMapper.insert(new UserRoom(user.getUserId(), roomId));
     }
 

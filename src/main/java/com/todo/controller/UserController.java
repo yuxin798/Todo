@@ -23,13 +23,23 @@ public class UserController {
     @Autowired
     private UserServiceImpl userServiceImpl;
 
+    /**
+     * 登录
+     * @param user
+     * @return token
+     */
     @PostMapping("/login")
-    public Result<String> login(@RequestBody UserDto userDto) {
-        return userServiceImpl.login(userDto);
+    public Result<String> login(@RequestBody UserDto user) {
+        return userServiceImpl.login(user);
     }
 
+    /**
+     * 注册
+     * @param user
+     * @return 注册成功与否
+     */
     @PostMapping("/register")
-    public Result<String> register(@RequestBody User user) {
+    public Result<String> register(@RequestBody UserDto user) {
         return userServiceImpl.register(user);
     }
 

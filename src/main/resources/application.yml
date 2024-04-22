@@ -13,7 +13,7 @@ spring:
       host: 8.130.17.7
       port: 6379
       database: 0
-      password:
+      password: 147258369
       timeout: 30000s
       lettuce:
         pool:
@@ -72,4 +72,3 @@ knife4j:
   setting:
     language: zh_cn
     enable-version: true
-

@@ -17,7 +17,7 @@ public interface RoomService extends IService<Room> {
 
     void createRoom(RoomDto roomDto);
 
-    String generateInvitationCode(RoomDto roomDto);
+    String generateInvitationCode(Long roomId);
 
     void acceptInvitation(String invitationCode);
 

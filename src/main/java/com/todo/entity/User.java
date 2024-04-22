@@ -66,6 +66,12 @@ public class User implements Serializable {
         this.userName = userName;
     }
 
+    public User(String userName, String password, String avatar) {
+        this.userName = userName;
+        this.password = password;
+        this.avatar = avatar;
+    }
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 

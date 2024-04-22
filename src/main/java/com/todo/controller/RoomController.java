@@ -41,8 +41,8 @@ public class RoomController {
      */
     @Operation(summary = "生成邀请码")
     @GetMapping("/generateInvitationCode")
-    public Result<String> generateInvitationCode(@RequestBody RoomDto roomDto) {
-        String code = roomService.generateInvitationCode(roomDto);
+    public Result<String> generateInvitationCode(Long roomId) {
+        String code = roomService.generateInvitationCode(roomId);
         return Result.success(code);
     }
 
@@ -52,7 +52,7 @@ public class RoomController {
      */
     @Operation(summary = "接受邀请")
     @PostMapping("/acceptInvitation")
-    public Result<String> acceptInvitation(@RequestBody String invitationCode) {
+    public Result<String> acceptInvitation(String invitationCode) {
         roomService.acceptInvitation(invitationCode);
         return Result.success();
     }
@@ -73,7 +73,7 @@ public class RoomController {
      * @return 自习室列表
      */
     @Operation(summary = "查询用户加入的所有自习室")
-    @GetMapping("/user/list")
+    @GetMapping("/room/list")
     public Result<List<RoomVo>> listUsers() {
         List<RoomVo> rooms = roomService.listRooms();
         return Result.success(rooms);
@@ -104,7 +104,7 @@ public class RoomController {
      * 删除自习室
      */
     @Operation(summary = "删除自习室")
-    @DeleteMapping("/")
+    @DeleteMapping("/deleteRoom")
     public Result<?> deleteRoom(Long roomId) {
         roomService.deleteRoom(roomId);
         return Result.success();
@@ -114,7 +114,7 @@ public class RoomController {
      * 修改自习室
      */
     @Operation(summary = "修改自习室")
-    @PutMapping("/")
+    @PutMapping("/updateRoom")
     public Result<?> updateRoom(@RequestBody RoomDto roomDto) {
         roomService.updateRoom(roomDto);
         return Result.success();
