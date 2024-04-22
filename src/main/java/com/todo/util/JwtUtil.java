@@ -22,12 +22,13 @@ public class JwtUtil {
      * @Param secret
      * @Return boolean
      */
-    public static boolean verify(String token, String userName) {
+    public static boolean verify(String token, User user) {
         try {
             // 设置加密算法
             Algorithm algorithm = Algorithm.HMAC256("落花有情");
             JWTVerifier verifier = JWT.require(algorithm)
-                    .withClaim("userName", userName)
+                    .withClaim("userId", user.getUserId())
+                    .withClaim("userName", user.getUserName())
                     .build();
             // 效验TOKEN
             DecodedJWT jwt = verifier.verify(token);
@@ -50,6 +51,7 @@ public class JwtUtil {
         Algorithm algorithm = Algorithm.HMAC256("落花有情");
         // 附带username信息
         return JWT.create()
+                .withClaim("userId", user.getUserId())
                 .withClaim("userName", user.getUserName())
                 .withExpiresAt(date)
                 .sign(algorithm);
@@ -62,10 +64,10 @@ public class JwtUtil {
      * @Param [request]
      * @Return java.lang.String
      */
-    public static String getUserNameByToken(HttpServletRequest request)  {
-        String token = request.getHeader("token");
+    public static User getUserByToken(String token)  {
         DecodedJWT jwt = JWT.decode(token);
-        return jwt.getClaim("userName")
-                .asString();
+        Long userId = jwt.getClaim("userId").asLong();
+        String userName = jwt.getClaim("userName").asString();
+        return new User(userId, userName);
     }
 }

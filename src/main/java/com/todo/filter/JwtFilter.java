@@ -20,8 +20,8 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         AntPathMatcher matcher = new AntPathMatcher();
-        if (matcher.match("/trust/user/login", requestURI) ||
-                matcher.match("/trust/user/register", requestURI) ||
+        if (matcher.match("/user/login", requestURI) ||
+                matcher.match("/user/register", requestURI) ||
                 request.getMethod().equals("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;
@@ -29,16 +29,15 @@ public class JwtFilter extends OncePerRequestFilter {
         // 从 http 请求头中取出 token
         String token = request.getHeader("token");
         if (token != null){
-            String userName = JwtUtil.getUserNameByToken(request);
+            User user = JwtUtil.getUserByToken(token);
             // 这边拿到的 用户名 应该去数据库查询获得密码，简略，步骤在service直接获取密码
-            boolean result = JwtUtil.verify(token, userName);
+            boolean result = JwtUtil.verify(token, user);
             if(result){
-                UsernamePasswordAuthenticationToken authenticationToken = UsernamePasswordAuthenticationToken.authenticated(userName, null, AuthorityUtils.NO_AUTHORITIES);
+                UsernamePasswordAuthenticationToken authenticationToken = UsernamePasswordAuthenticationToken.authenticated(user, null, AuthorityUtils.NO_AUTHORITIES);
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                filterChain.doFilter(request, response);;
+                filterChain.doFilter(request, response);
             }
         }
         filterChain.doFilter(request, response);
-
     }
 }

@@ -1,7 +1,9 @@
 package com.todo.controller;
 
+import com.todo.dto.UserDto;
 import com.todo.entity.User;
 import com.todo.service.impl.UserServiceImpl;
+import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,8 @@ public class UserController {
     private UserServiceImpl userServiceImpl;
 
     @PostMapping("/login")
-    public Result<String> login(@RequestBody User user) {
-        return userServiceImpl.login(user);
+    public Result<String> login(@RequestBody UserDto userDto) {
+        return userServiceImpl.login(userDto);
     }
 
     @PostMapping("/register")
@@ -33,6 +35,7 @@ public class UserController {
 
     @GetMapping("/test")
     public String test(){
+        System.out.println(UserContextUtil.getUser());
         return "test";
     }
 }

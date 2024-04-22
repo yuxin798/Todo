@@ -2,6 +2,7 @@ package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.todo.dto.UserDto;
 import com.todo.entity.User;
 import com.todo.mapper.UserMapper;
 import com.todo.service.UserService;
@@ -25,18 +26,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public Result<String> login(User user) {
-        if (user == null){
+    public Result<String> login(UserDto userDto) {
+        if (userDto == null){
             return ResultVOUtil.error("请填写用户名和密码");
-        }else if(user.getUserName() == null){
+        }else if(userDto.getUserName() == null){
             return ResultVOUtil.error("请填写用户名");
-        }else if(user.getPassword() == null){
+        }else if(userDto.getPassword() == null){
             return ResultVOUtil.error("请填写密码");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name", user.getUserName());
+        queryWrapper.eq("user_name", userDto.getUserName());
         User queryUser = userMapper.selectOne(queryWrapper);
-        if(queryUser == null || !passwordEncoder.matches(user.getPassword(), queryUser.getPassword())){
+        if(queryUser == null || !passwordEncoder.matches(userDto.getPassword(), queryUser.getPassword())){
             return ResultVOUtil.error("用户名或密码错误");
         }
         String token = JwtUtil.sign(queryUser);

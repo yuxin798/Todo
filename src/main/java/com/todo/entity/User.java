@@ -58,6 +58,14 @@ public class User implements Serializable {
     @TableField(value = "deleted")
     private Integer deleted;
 
+    public User() {
+    }
+
+    public User(Long userId, String userName) {
+        this.userId = userId;
+        this.userName = userName;
+    }
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
