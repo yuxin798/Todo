@@ -1,5 +1,6 @@
 package com.todo.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.todo.dto.RoomDto;
 import com.todo.entity.Room;
 import com.todo.service.RoomService;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 
@@ -73,7 +76,7 @@ public class RoomController {
      * @return 自习室列表
      */
     @Operation(summary = "查询用户加入的所有自习室")
-    @GetMapping("/room/list")
+    @GetMapping("/list")
     public Result<List<RoomVo>> listUsers() {
         List<RoomVo> rooms = roomService.listRooms();
         return Result.success(rooms);
@@ -104,7 +107,7 @@ public class RoomController {
      * 删除自习室
      */
     @Operation(summary = "删除自习室")
-    @DeleteMapping("/deleteRoom")
+    @DeleteMapping("/")
     public Result<?> deleteRoom(Long roomId) {
         roomService.deleteRoom(roomId);
         return Result.success();
@@ -114,11 +117,52 @@ public class RoomController {
      * 修改自习室
      */
     @Operation(summary = "修改自习室")
-    @PutMapping("/updateRoom")
+    @PutMapping("/update")
     public Result<?> updateRoom(@RequestBody RoomDto roomDto) {
         roomService.updateRoom(roomDto);
         return Result.success();
     }
 
+    /**
+     * 分页查询自习室
+     */
+    @Operation(summary = "查询自习室")
+    @GetMapping("/")
+    public Result<Page<Room>> findRooms(
+            RoomDto roomDto,
+            @RequestParam(required = false, defaultValue = "0") int pageNum,
+            @RequestParam(required = false, defaultValue = "20") int pageSize) {
+        Page<Room> page = roomService.findRooms(roomDto, pageNum, pageSize);
+        return Result.success(page);
+    }
 
+    /**
+     * 用户申请加入自习室
+     */
+    @Operation(summary = "用户申请加入自习室")
+    @PostMapping("/user/requestJoin")
+    public Result<?> requestJoin(Long roomId) {
+        roomService.requestJoin(roomId);
+        return Result.success();
+    }
+
+    /**
+     * 管理员同意用户加入自习室
+     */
+    @Operation(summary = "管理员同意用户加入自习室")
+    @PostMapping("/manager/acceptRequest")
+    public Result<?> acceptRequest(Long roomId, Long userId) {
+        roomService.acceptRequest(roomId, userId);
+        return Result.success();
+    }
+
+    /**
+     * 管理员查询所有的加入自习室的请求
+     */
+    @Operation(summary = "管理员查询所有的加入自习室的请求")
+    @GetMapping("/manager/requests")
+    public Result<List<UserVo>> findRequests(Long roomId) {
+        List<UserVo> users = roomService.findRequests(roomId);
+        return Result.success(users);
+    }
 }

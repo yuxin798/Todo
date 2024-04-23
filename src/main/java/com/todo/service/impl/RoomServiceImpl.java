@@ -3,6 +3,7 @@ package com.todo.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.RoomDto;
@@ -21,6 +22,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,6 +62,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
         // roomDto的信息用户是可以篡改的
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限生成邀请码");
@@ -85,6 +91,15 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         if(roomId == null){
             throw new RuntimeException("邀请码不存在");
         }
+
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getRoomId, roomId)
+                .eq(UserRoom::getUserId, user.getUserId());
+
+        if (userRoomMapper.selectOne(wrapper) != null) {
+            throw new RuntimeException("已加入自习室");
+        }
+
         userRoomMapper.insert(new UserRoom(user.getUserId(), roomId));
     }
 
@@ -129,6 +144,14 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        if (room.getUserId().equals(userId)) {
+            throw new RuntimeException("创建者不能退出自习室，只能解散");
+        }
+
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
         }
@@ -142,7 +165,24 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     @Override
     public void userExit(Long roomId) {
         User user = UserContextUtil.getUser();
-        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+        Room room = baseMapper.selectById(roomId);
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        if (room.getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("创建者不能退出自习室，只能解散");
+        }
+
+        LambdaQueryWrapper<UserRoom> wrapper;
+        wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getRoomId, roomId);
+        if (userRoomMapper.selectOne(wrapper) == null) {
+            throw new RuntimeException("用户已不在自习室中");
+        }
+
+        wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getRoomId, roomId)
                 .eq(UserRoom::getUserId, user.getUserId());
         userRoomMapper.delete(wrapper);
@@ -153,11 +193,21 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
         }
 
+        // 删除room
         baseMapper.deleteById(roomId);
+
+        // 删除关系
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getRoomId, roomId);
+        userRoomMapper.delete(wrapper);
     }
 
     @Override
@@ -165,15 +215,106 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomDto.getRoomId());
 
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
         }
 
-        // TODO: 2024/4/22  
-        // LambdaUpdateWrapper<Room> wrapper = new LambdaUpdateWrapper<>(Room.class)
-        //         .eq(Room::getRoomId, roomDto.getRoomId())
-        //         .eq();
-        // baseMapper.update()
+        LambdaUpdateWrapper<Room> wrapper = new LambdaUpdateWrapper<>(Room.class)
+                .set(roomDto.getUserId() != null && !roomDto.getUserId().equals(room.getUserId()), Room::getUserId, roomDto.getUserId())
+                .set(StringUtils.hasText(roomDto.getRoomName()), Room::getRoomName, roomDto.getRoomName())
+                .set(StringUtils.hasText(roomDto.getRoomAvatar()), Room::getRoomAvatar, roomDto.getRoomAvatar())
+                .eq(Room::getRoomId, roomDto.getRoomId());
+        baseMapper.update(wrapper);
+    }
+
+    @Override
+    public Page<Room> findRooms(RoomDto roomDto, int pageNum, int pageSize) {
+        LambdaQueryWrapper<Room> wrapper = new LambdaQueryWrapper<>(Room.class)
+                .like(Room::getRoomName, roomDto.getRoomName());
+
+        return baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+    }
+
+    @Override
+    public void requestJoin(Long roomId) {
+        User user = UserContextUtil.getUser();
+        Room room = baseMapper.selectById(roomId);
+
+        if (room.getRoomId() == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getRoomId, roomId);
+        if (userRoomMapper.selectOne(wrapper) != null) {
+            throw new RuntimeException("用户已在自习室中");
+        }
+
+        Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+        if (index != null) {
+            throw new RuntimeException("用户已申请");
+        }
+
+        // 存放到redis中
+        redisTemplate.opsForList().leftPush(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+    }
+
+    @Override
+    public void acceptRequest(Long roomId, Long userId) {
+        User user = UserContextUtil.getUser();
+        Room room = baseMapper.selectById(roomId);
+
+        if (room.getRoomId() == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        if (!user.getUserId().equals(room.getUserId())) {
+            throw new RuntimeException("没有权限");
+        }
+
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getRoomId, roomId);
+        if (userRoomMapper.selectOne(wrapper) != null) {
+            throw new RuntimeException("用户已在自习室中");
+        }
+
+        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, user.getUserId());
+    }
+
+    @Override
+    public List<UserVo> findRequests(Long roomId) {
+        User user = UserContextUtil.getUser();
+        Room room = baseMapper.selectById(roomId);
+
+        if (room.getRoomId() == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        if (!user.getUserId().equals(room.getUserId())) {
+            throw new RuntimeException("没有权限");
+        }
+
+        List<Object> objects = redisTemplate.opsForList().range(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, -1);
+        if (objects == null) {
+            return new ArrayList<>();
+        }
+
+        List<Long> ids = objects
+                .stream()
+                .map(o -> (Long) o)
+                .toList();
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>(User.class)
+                .in(User::getUserId, ids);
+        return userMapper.selectList(wrapper)
+                .stream()
+                .map(u -> new UserVo(u.getUserId(), u.getUserName(), u.getAvatar()))
+                .toList();
     }
 }
 

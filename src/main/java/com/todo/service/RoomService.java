@@ -1,5 +1,6 @@
 package com.todo.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.todo.dto.RoomDto;
 import com.todo.entity.Room;
@@ -32,4 +33,12 @@ public interface RoomService extends IService<Room> {
     void deleteRoom(Long roomId);
 
     void updateRoom(RoomDto roomDto);
+
+    Page<Room> findRooms(RoomDto roomDto, int pageNum, int pageSize);
+
+    void requestJoin(Long roomId);
+
+    void acceptRequest(Long roomId, Long userId);
+
+    List<UserVo> findRequests(Long roomId);
 }
