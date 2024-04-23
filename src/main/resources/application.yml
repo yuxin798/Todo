@@ -27,6 +27,22 @@ spring:
       max-file-size: 1000MB
       max-request-size: 1000MB
 
+  mail:
+    default-encoding: UTF-8
+    host: smtp.163.com
+    username: yuxin_798@163.com
+    password: EOTVAPNXIGLIPDOR
+    properties:
+      mail:
+        smtp:
+          auth: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+          starttls:
+            enable: true
+    protocol: smtp
+    port: 465
+
 logging:
   level:
     com.todo: debug

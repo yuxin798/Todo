@@ -29,6 +29,7 @@ public class JwtUtil {
             JWTVerifier verifier = JWT.require(algorithm)
                     .withClaim("userId", user.getUserId())
                     .withClaim("userName", user.getUserName())
+                    .withClaim("email", user.getEmail())
                     .build();
             // 效验TOKEN
             DecodedJWT jwt = verifier.verify(token);
@@ -53,6 +54,7 @@ public class JwtUtil {
         return JWT.create()
                 .withClaim("userId", user.getUserId())
                 .withClaim("userName", user.getUserName())
+                .withClaim("email", user.getEmail())
                 .withExpiresAt(date)
                 .sign(algorithm);
 
@@ -68,6 +70,7 @@ public class JwtUtil {
         DecodedJWT jwt = JWT.decode(token);
         Long userId = jwt.getClaim("userId").asLong();
         String userName = jwt.getClaim("userName").asString();
-        return new User(userId, userName);
+        String email = jwt.getClaim("email").asString();
+        return new User(userId, userName, email);
     }
 }

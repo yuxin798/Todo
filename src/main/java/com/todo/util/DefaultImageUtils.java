@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class DefaultImageUtils {
-
-
+    //TODO默认头像
     static final ArrayList<String> defaultImages;
     static {
         defaultImages = new ArrayList<>();

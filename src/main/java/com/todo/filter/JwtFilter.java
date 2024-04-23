@@ -23,6 +23,7 @@ public class JwtFilter extends OncePerRequestFilter {
         AntPathMatcher matcher = new AntPathMatcher();
         if (matcher.match("/user/login", requestURI) ||
                 matcher.match("/user/register", requestURI) ||
+                matcher.match("/user/getEmailCodeKey", requestURI) ||
                 request.getMethod().equals("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;

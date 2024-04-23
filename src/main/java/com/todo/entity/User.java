@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.checkerframework.checker.units.qual.N;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -15,6 +18,8 @@ import java.util.Date;
  */
 @TableName(value ="user")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User implements Serializable {
     /**
      * 
@@ -27,6 +32,12 @@ public class User implements Serializable {
      */
     @TableField(value = "user_name")
     private String userName;
+
+    /**
+     *
+     */
+    @TableField(value = "email")
+    private String email;
 
     /**
      * 
@@ -58,7 +69,10 @@ public class User implements Serializable {
     @TableField(value = "deleted")
     private Integer deleted;
 
-    public User() {
+    public User(Long userId, String userName, String email) {
+        this.userId = userId;
+        this.userName = userName;
+        this.email = email;
     }
 
     public User(Long userId, String userName) {
@@ -89,6 +103,7 @@ public class User implements Serializable {
         User other = (User) that;
         return (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
             && (this.getUserName() == null ? other.getUserName() == null : this.getUserName().equals(other.getUserName()))
+            && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
             && (this.getPassword() == null ? other.getPassword() == null : this.getPassword().equals(other.getPassword()))
             && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
             && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
@@ -102,6 +117,7 @@ public class User implements Serializable {
         int result = 1;
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
         result = prime * result + ((getUserName() == null) ? 0 : getUserName().hashCode());
+        result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
         result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
         result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
@@ -118,6 +134,7 @@ public class User implements Serializable {
         sb.append("Hash = ").append(hashCode());
         sb.append(", userId=").append(userId);
         sb.append(", userName=").append(userName);
+        sb.append(", email=").append(email);
         sb.append(", password=").append(password);
         sb.append(", avatar=").append(avatar);
         sb.append(", createdAt=").append(createdAt);

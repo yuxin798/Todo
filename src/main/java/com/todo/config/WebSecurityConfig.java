@@ -38,6 +38,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/user/login").anonymous()
                         .requestMatchers("/user/register").anonymous()
+                        .requestMatchers("/user/getEmailCodeKey").anonymous()
                         .requestMatchers("/doc.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

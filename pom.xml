@@ -22,7 +22,6 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
 <!--        web服务-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -81,6 +80,11 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.5.7</version>
+        </dependency>
+<!--        邮箱验证-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 <!--        工具类-->
         <dependency>
