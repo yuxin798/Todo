@@ -20,6 +20,7 @@ import com.todo.vo.UserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -131,6 +132,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .map(UserRoom::getRoomId)
                 .toList();
 
+        if (CollectionUtils.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+
         LambdaQueryWrapper<Room> roomWrapper = new LambdaQueryWrapper<>(Room.class)
                 .in(Room::getRoomId, ids);
         return baseMapper.selectList(roomWrapper)
@@ -148,17 +153,22 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("自习室不存在");
         }
 
-        if (room.getUserId().equals(userId)) {
-            throw new RuntimeException("创建者不能退出自习室，只能解散");
-        }
-
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
+        }
+
+        if (room.getUserId().equals(userId)) {
+            throw new RuntimeException("创建者不能退出自习室，只能解散");
         }
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getRoomId, roomId)
                 .eq(UserRoom::getUserId, userId);
+
+        if (userRoomMapper.selectOne(wrapper) == null) {
+            throw new RuntimeException("用户已被移除");
+        }
+
         userRoomMapper.delete(wrapper);
     }
 
@@ -278,12 +288,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         }
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
-                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getUserId, userId)
                 .eq(UserRoom::getRoomId, roomId);
         if (userRoomMapper.selectOne(wrapper) != null) {
             throw new RuntimeException("用户已在自习室中");
         }
 
+        userRoomMapper.insert(new UserRoom(userId, roomId));
         redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, user.getUserId());
     }
 
@@ -301,13 +312,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         }
 
         List<Object> objects = redisTemplate.opsForList().range(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, -1);
-        if (objects == null) {
+        if (CollectionUtils.isEmpty(objects)) {
             return new ArrayList<>();
         }
 
         List<Long> ids = objects
                 .stream()
-                .map(o -> (Long) o)
+                .map(o -> Long.valueOf(o.toString()))
                 .toList();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);
