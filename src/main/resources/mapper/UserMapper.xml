@@ -20,4 +20,19 @@
         set password = #{password}
         where email = #{email}
     </update>
+    <update id="updateSignatureByUserId">
+        update user
+        set signature = #{signature}
+        where user_id = #{userId}
+    </update>
+    <update id="updateUserNameByUserId">
+        update user
+        set user_name = #{userName}
+        where user_id = #{userId}
+    </update>
+    <update id="updateAvatarByUserId">
+        update user
+        set avatar = #{avatar}
+        where user_id = #{userId}
+    </update>
 </mapper>

@@ -1,17 +1,17 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.UserDto;
 import com.todo.entity.User;
 import com.todo.mapper.UserMapper;
 import com.todo.service.UserService;
-import com.todo.util.DefaultImageUtils;
+import com.todo.util.DefaultGeneratorUtils;
 import com.todo.util.JwtUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
+import com.todo.vo.UserVo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultImageUtils.getRandomDefaultAvatar());
+        User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultGeneratorUtils.getRandomDefaultAvatar(), DefaultGeneratorUtils.getRandomDefaultSignature());
         if (this.save(user)){
             return Result.success("注册成功");
         }else {
@@ -140,6 +140,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         redisTemplate.opsForValue().set(RedisConstant.EMAIL_VALIDATE_CODE + uuid + email, code, 1, TimeUnit.MINUTES);
         return Result.success(uuid);
+    }
+
+    @Override
+    public Result<String> updateSignature(String signature) {
+        Long userId = UserContextUtil.getUser().getUserId();
+        int count = baseMapper.updateSignatureByUserId(signature, userId);
+        if (count == 1){
+            return Result.success("修改成功");
+        }
+        return Result.error("用户已注销");
+    }
+    @Override
+    public Result<String> updateUserName(String userName) {
+        Long userId = UserContextUtil.getUser().getUserId();
+        int count = baseMapper.updateUserNameByUserId(userName, userId);
+        if (count == 1){
+            return Result.success("修改成功");
+        }
+        return Result.error("用户已注销");
+    }
+
+    @Override
+    public Result<String> modifyAvatar(String avatar) {
+        Long userId = UserContextUtil.getUser().getUserId();
+        int count = baseMapper.updateAvatarByUserId(avatar, userId);
+        if (count == 1){
+            return Result.success("修改成功");
+        }
+        return Result.error("用户已注销");
+    }
+
+    public Result<UserVo> getUserInfo() {
+        Long userId = UserContextUtil.getUser().getUserId();
+        User user = baseMapper.selectById(userId);
+        if (user == null){
+            return Result.error("用户已注销");
+        }
+        UserVo userVo = new UserVo(user.getUserId(), user.getUserName(), user.getAvatar(), user.getSignature());
+        return Result.success(userVo);
     }
 }
 

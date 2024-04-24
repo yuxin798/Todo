@@ -12,6 +12,12 @@ import com.todo.entity.User;
 public interface UserMapper extends BaseMapper<User> {
 
     int updatePasswordByEmail(User user);
+
+    int updateSignatureByUserId(String signature, Long userId);
+
+    int updateUserNameByUserId(String userName, Long userId);
+
+    int updateAvatarByUserId(String avatar, Long userId);
 }
 
 

@@ -52,6 +52,12 @@ public class User implements Serializable {
     private String avatar;
 
     /**
+     *
+     */
+    @TableField(value = "signature")
+    private String signature;
+
+    /**
      * 
      */
     @TableField(value = "created_at")
@@ -68,6 +74,7 @@ public class User implements Serializable {
      */
     @TableField(value = "deleted")
     private Integer deleted;
+
 
     public User(Long userId, String userName, String email) {
         this.userId = userId;
@@ -89,11 +96,12 @@ public class User implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public User(String userName, String email, String password, String avatar) {
+    public User(String userName, String email, String password, String avatar, String signature) {
         this.userName = userName;
         this.email = email;
         this.password = password;
         this.avatar = avatar;
+        this.signature = signature;
     }
 
     @Override
@@ -113,6 +121,7 @@ public class User implements Serializable {
             && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
             && (this.getPassword() == null ? other.getPassword() == null : this.getPassword().equals(other.getPassword()))
             && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
+            && (this.getSignature() == null ? other.getSignature() == null : this.getSignature().equals(other.getSignature()))
             && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
             && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
             && (this.getDeleted() == null ? other.getDeleted() == null : this.getDeleted().equals(other.getDeleted()));
@@ -127,6 +136,7 @@ public class User implements Serializable {
         result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
         result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
         result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
+        result = prime * result + ((getSignature() == null) ? 0 : getSignature().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
         result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
         result = prime * result + ((getDeleted() == null) ? 0 : getDeleted().hashCode());
@@ -144,6 +154,7 @@ public class User implements Serializable {
         sb.append(", email=").append(email);
         sb.append(", password=").append(password);
         sb.append(", avatar=").append(avatar);
+        sb.append(", signature=").append(signature);
         sb.append(", createdAt=").append(createdAt);
         sb.append(", updatedAt=").append(updatedAt);
         sb.append(", deleted=").append(deleted);
