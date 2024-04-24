@@ -1,0 +1,60 @@
+@host = http://localhost:80
+
+### admin登录
+POST {{host}}/user/login
+Content-Type: application/json
+
+{
+  "email": "2808021998@qq.com",
+  "password": "admin"
+}
+
+> {%
+    let token = response.body.data
+    client.assert(token, "登录失败")
+    client.global.set('adminToken', token)
+%}
+
+### bdmin登录
+POST {{host}}/user/login
+Content-Type: application/json
+
+{
+  "email": "1241250055@qq.com",
+  "password": "777777"
+}
+
+> {%
+    let token = response.body.data
+    client.assert(token, "登录失败")
+    client.global.set('bdminToken', token)
+%}
+
+### admin创建自习室
+POST {{host}}/room/create
+Content-Type: application/json
+token: {{adminToken}}
+
+{
+  "roomId": 0,
+  "userId": 0,
+  "roomName": "admin的自习室",
+  "roomAvatar": "http://8.130.17.7:9000/todo-bucket/1.jpeg"
+}
+
+> {%
+    client.assert(response.body.code === '200', '返回值不是200')
+    client.global.set('adminRoomId', response.body.data.roomId)
+%}
+
+### admin生成邀请码
+GET {{host}}}/room/generateInvitationCode
+Content-Type: application/x-www-form-urlencoded
+token: {{adminToken}}
+
+roomId = {{adminRoomId}}
+
+> {%
+    client.assert(response.body.code === '200', '返回值不是200')
+%}
+

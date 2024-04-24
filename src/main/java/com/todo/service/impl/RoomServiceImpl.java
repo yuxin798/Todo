@@ -47,7 +47,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public void createRoom(RoomDto roomDto) {
+    public RoomVo createRoom(RoomDto roomDto) {
         User user = UserContextUtil.getUser();
 
         // 添加 room
@@ -56,6 +56,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
         // 添加关系
         userRoomMapper.insert(new UserRoom(user.getUserId(), room.getRoomId()));
+        return new RoomVo(room.getRoomId(), room.getRoomName(), room.getRoomAvatar());
     }
 
     @Override
@@ -254,7 +255,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
@@ -265,13 +266,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("用户已在自习室中");
         }
 
-        Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+        Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId().toString());
         if (index != null) {
             throw new RuntimeException("用户已申请");
         }
 
         // 存放到redis中
-        redisTemplate.opsForList().leftPush(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+        redisTemplate.opsForList().leftPush(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId().toString());
     }
 
     @Override
@@ -279,12 +280,27 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
+        }
+
+        List<Object> requests = redisTemplate.opsForList().range(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, -1);
+
+        if (CollectionUtils.isEmpty(requests)) {
+            throw new RuntimeException("申请不存在");
+        }
+
+        List<String> ids = requests
+                .stream()
+                .map(o -> (String) o)
+                .toList();
+
+        if (!ids.contains(userId.toString())) {
+            throw new RuntimeException("申请不存在");
         }
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
@@ -294,8 +310,11 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("用户已在自习室中");
         }
 
-        userRoomMapper.insert(new UserRoom(userId, roomId));
-        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, user.getUserId());
+        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
+        Long size = redisTemplate.opsForList().size(RedisConstant.ROOM_REQUEST_JOIN + roomId);
+        if (size != null && size == 0) {
+            redisTemplate.delete(RedisConstant.ROOM_REQUEST_JOIN + roomId);
+        }
     }
 
     @Override
@@ -303,7 +322,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
@@ -316,9 +335,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             return new ArrayList<>();
         }
 
-        List<Long> ids = objects
+        List<String> ids = objects
                 .stream()
-                .map(o -> Long.valueOf(o.toString()))
+                .map(o -> (String) o)
                 .toList();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);

@@ -34,9 +34,9 @@ public class RoomController {
      */
     @Operation(summary = "创建自习室")
     @PostMapping("/create")
-    public Result<?> createRoom(@RequestBody RoomDto roomDto) {
-        roomService.createRoom(roomDto);
-        return Result.success();
+    public Result<RoomVo> createRoom(@RequestBody RoomDto roomDto) {
+        RoomVo room = roomService.createRoom(roomDto);
+        return Result.success(room);
     }
 
     /**

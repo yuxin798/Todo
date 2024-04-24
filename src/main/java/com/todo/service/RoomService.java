@@ -16,7 +16,7 @@ import java.util.List;
 */
 public interface RoomService extends IService<Room> {
 
-    void createRoom(RoomDto roomDto);
+    RoomVo createRoom(RoomDto roomDto);
 
     String generateInvitationCode(Long roomId);
 
