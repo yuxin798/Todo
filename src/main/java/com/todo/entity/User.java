@@ -89,6 +89,13 @@ public class User implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
+    public User(String userName, String email, String password, String avatar) {
+        this.userName = userName;
+        this.email = email;
+        this.password = password;
+        this.avatar = avatar;
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
