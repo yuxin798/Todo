@@ -1,7 +1,10 @@
 package com.todo.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.todo.dto.TaskDto;
 import com.todo.entity.Task;
+import com.todo.vo.TaskVo;
 
 /**
 * @author 28080
@@ -10,4 +13,13 @@ import com.todo.entity.Task;
 */
 public interface TaskService extends IService<Task> {
 
+    TaskVo addTask(TaskDto taskDto);
+
+    void removeTask(Long taskDto);
+
+    Task updateTask(TaskDto taskDto);
+
+    Page<TaskVo> findTaskPage(TaskDto taskDto, int pageNum, int pageSize);
+
+    TaskVo findById(Long taskId);
 }
