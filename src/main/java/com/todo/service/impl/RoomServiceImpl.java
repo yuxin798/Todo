@@ -20,6 +20,7 @@ import com.todo.vo.UserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public void createRoom(RoomDto roomDto) {
+    public RoomVo createRoom(RoomDto roomDto) {
         User user = UserContextUtil.getUser();
 
         // 添加 room
@@ -55,6 +56,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
         // 添加关系
         userRoomMapper.insert(new UserRoom(user.getUserId(), room.getRoomId()));
+        return new RoomVo(room.getRoomId(), room.getRoomName(), room.getRoomAvatar());
     }
 
     @Override
@@ -131,6 +133,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .map(UserRoom::getRoomId)
                 .toList();
 
+        if (CollectionUtils.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+
         LambdaQueryWrapper<Room> roomWrapper = new LambdaQueryWrapper<>(Room.class)
                 .in(Room::getRoomId, ids);
         return baseMapper.selectList(roomWrapper)
@@ -148,17 +154,22 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("自习室不存在");
         }
 
-        if (room.getUserId().equals(userId)) {
-            throw new RuntimeException("创建者不能退出自习室，只能解散");
-        }
-
         if (!user.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
+        }
+
+        if (room.getUserId().equals(userId)) {
+            throw new RuntimeException("创建者不能退出自习室，只能解散");
         }
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getRoomId, roomId)
                 .eq(UserRoom::getUserId, userId);
+
+        if (userRoomMapper.selectOne(wrapper) == null) {
+            throw new RuntimeException("用户已被移除");
+        }
+
         userRoomMapper.delete(wrapper);
     }
 
@@ -244,7 +255,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
@@ -255,13 +266,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("用户已在自习室中");
         }
 
-        Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+        Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId().toString());
         if (index != null) {
             throw new RuntimeException("用户已申请");
         }
 
         // 存放到redis中
-        redisTemplate.opsForList().leftPush(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId());
+        redisTemplate.opsForList().leftPush(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId().toString());
     }
 
     @Override
@@ -269,7 +280,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
@@ -277,14 +288,33 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("没有权限");
         }
 
+        List<Object> requests = redisTemplate.opsForList().range(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, -1);
+
+        if (CollectionUtils.isEmpty(requests)) {
+            throw new RuntimeException("申请不存在");
+        }
+
+        List<String> ids = requests
+                .stream()
+                .map(o -> (String) o)
+                .toList();
+
+        if (!ids.contains(userId.toString())) {
+            throw new RuntimeException("申请不存在");
+        }
+
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
-                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getUserId, userId)
                 .eq(UserRoom::getRoomId, roomId);
         if (userRoomMapper.selectOne(wrapper) != null) {
             throw new RuntimeException("用户已在自习室中");
         }
 
-        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, user.getUserId());
+        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
+        Long size = redisTemplate.opsForList().size(RedisConstant.ROOM_REQUEST_JOIN + roomId);
+        if (size != null && size == 0) {
+            redisTemplate.delete(RedisConstant.ROOM_REQUEST_JOIN + roomId);
+        }
     }
 
     @Override
@@ -292,7 +322,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
-        if (room.getRoomId() == null) {
+        if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
@@ -301,13 +331,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         }
 
         List<Object> objects = redisTemplate.opsForList().range(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, -1);
-        if (objects == null) {
+        if (CollectionUtils.isEmpty(objects)) {
             return new ArrayList<>();
         }
 
-        List<Long> ids = objects
+        List<String> ids = objects
                 .stream()
-                .map(o -> (Long) o)
+                .map(o -> (String) o)
                 .toList();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);

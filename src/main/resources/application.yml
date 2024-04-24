@@ -46,6 +46,7 @@ spring:
 logging:
   level:
     com.todo: debug
+    web: trace
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

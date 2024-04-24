@@ -9,6 +9,7 @@ import com.todo.vo.RoomVo;
 import com.todo.vo.UserVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -33,9 +34,9 @@ public class RoomController {
      */
     @Operation(summary = "创建自习室")
     @PostMapping("/create")
-    public Result<?> createRoom(@RequestBody RoomDto roomDto) {
-        roomService.createRoom(roomDto);
-        return Result.success();
+    public Result<RoomVo> createRoom(@RequestBody RoomDto roomDto) {
+        RoomVo room = roomService.createRoom(roomDto);
+        return Result.success(room);
     }
 
     /**
