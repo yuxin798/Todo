@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -15,6 +17,8 @@ import java.util.Date;
  */
 @TableName(value ="task")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Task implements Serializable {
     /**
      * 
@@ -102,6 +106,18 @@ public class Task implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    public Task(Long userId, String taskName, String estimate) {
+        this.userId = userId;
+        this.taskName = taskName;
+        this.estimate = estimate;
+
+        this.setTomatoClockTimes(0);
+        this.setStopTimes(0);
+        this.setTaskStatus(1);
+        this.setInnerInterrupt(0);
+        this.setOuterInterrupt(0);
+    }
 
     @Override
     public boolean equals(Object that) {
