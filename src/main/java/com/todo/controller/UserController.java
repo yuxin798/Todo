@@ -7,6 +7,7 @@ import com.todo.vo.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -27,24 +28,24 @@ public class UserController {
 
     /**
      * 登录
-     * @param user
+     * @param userDto
      * @return token
      */
     @Operation(summary = "登录")
     @PostMapping("/login")
-    public Result<String> login(@RequestBody UserDto user) {
-        return userServiceImpl.login(user);
+    public Result<String> login(@RequestBody @Validated({UserDto.Login.class}) UserDto userDto) {
+        return userServiceImpl.login(userDto);
     }
 
     /**
      * 注册
-     * @param user
+     * @param userDto
      * @return 注册成功与否
      */
     @Operation(summary = "注册")
     @PostMapping("/register")
-    public Result<String> register(@RequestBody UserDto user) {
-        return userServiceImpl.register(user);
+    public Result<String> register(@RequestBody @Validated({UserDto.Register.class}) UserDto userDto) {
+        return userServiceImpl.register(userDto);
     }
 
     @Operation(summary = "获取验证码Key")

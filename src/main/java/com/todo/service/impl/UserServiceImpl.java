@@ -51,52 +51,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public Result<String> login(UserDto userDto) {
-        if (userDto == null){
-            return Result.error("请填写用户名和密码");
-        }else if(userDto.getUserName() == null){
-            return Result.error("请填写用户名");
-        }else if(userDto.getPassword() == null){
-            return Result.error("请填写密码");
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getEmail, userDto.getEmail());
+        User user = baseMapper.selectOne(queryWrapper);
+        if(user == null || !passwordEncoder.matches(userDto.getPassword(), user.getPassword())){
+            return Result.error("邮箱或密码错误");
         }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name", userDto.getUserName());
-        User queryUser = baseMapper.selectOne(queryWrapper);
-        if(queryUser == null || !passwordEncoder.matches(userDto.getPassword(), queryUser.getPassword())){
-            return Result.error("用户名或密码错误");
-        }
-        String token = JwtUtil.sign(queryUser);
+        String token = JwtUtil.sign(user);
         return Result.success("认证成功", token);
     }
 
     @Override
-    public Result<String> register(UserDto user) {
-        if (user == null){
-            return Result.error("请填写用户名和密码");
-        }else if(StringUtils.hasText(user.getUserName())){
-            return Result.error("请填写用户名");
-        }else if(StringUtils.hasText(user.getPassword())){
-            return Result.error("请填写密码");
-        }else if(StringUtils.hasText(user.getConfirmPassword())){
-            return Result.error("请填写确认密码");
-        }else if (!user.getPassword().equals(user.getConfirmPassword())){
+    public Result<String> register(UserDto userDto) {
+        if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             return Result.error("两次密码不一致");
-        }else if(!StringUtils.hasText(user.getEmail())){
-            return Result.error("请填写邮箱");
-        }else if(!StringUtils.hasText(user.getEmailCodeKey())){
-            return Result.error("请填写邮箱验证码");
         }
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUserName, user.getUserName());
+        queryWrapper.eq(User::getEmail, userDto.getEmail());
         if (baseMapper.exists(queryWrapper)){
-            return Result.error("帐号已存在，请更换用户名");
+            return Result.error("帐号已存在，请更换邮箱");
         }
-        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + user.getEmailCodeKey());
-        if (!StringUtils.hasText(emailCode) || !emailCode.equals(user.getEmailCode())){
+        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey());
+        if (!StringUtils.hasText(emailCode) || !emailCode.equals(userDto.getEmailCode())){
             return Result.error("邮箱验证码错误");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        boolean save = this.save(new User(user.getUserName(), user.getPassword(), DefaultImageUtils.getRandomDefaultAvatar()));
-        if (save){
+        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultImageUtils.getRandomDefaultAvatar());
+        if (this.save(user)){
             return Result.success("注册成功");
         }else {
             return Result.error("网络繁忙，请稍后重试");
@@ -109,7 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return Result.error("请填写密码");
         }else if (!StringUtils.hasText(userDto.getConfirmPassword())){
             return Result.error("请填写确认密码");
-        }else if(userDto.getPassword().equals(userDto.getConfirmPassword())){
+        }else if(!userDto.getPassword().equals(userDto.getConfirmPassword())){
             return Result.error("密码和确认密码不一致");
         }else if(!StringUtils.hasText(userDto.getEmailCodeKey())){
             return Result.error("请填写邮箱验证码");
