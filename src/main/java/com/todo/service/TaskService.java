@@ -17,7 +17,7 @@ public interface TaskService extends IService<Task> {
 
     void removeTask(Long taskDto);
 
-    Task updateTask(TaskDto taskDto);
+    TaskVo updateTask(TaskDto taskDto);
 
     Page<TaskVo> findTaskPage(TaskDto taskDto, int pageNum, int pageSize);
 

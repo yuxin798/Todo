@@ -43,7 +43,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate);
         baseMapper.insert(task);
 
-        return findById(taskDto.getTaskId());
+        return findById(task.getTaskId());
     }
 
     @Override
@@ -65,7 +65,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     }
 
     @Override
-    public Task updateTask(TaskDto taskDto) {
+    public TaskVo updateTask(TaskDto taskDto) {
         User user = UserContextUtil.getUser();
         Task task = baseMapper.selectById(taskDto.getTaskId());
 
@@ -86,7 +86,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(taskDto.getCompletedAt() != null, Task::getCompletedAt, taskDto.getCompletedAt())
                 .eq(Task::getTaskId, taskDto.getTaskId());
         baseMapper.update(task, wrapper);
-        return baseMapper.selectById(task.getTaskId());
+        return findById(task.getTaskId());
     }
 
     @Override

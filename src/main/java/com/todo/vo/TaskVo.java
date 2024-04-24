@@ -6,9 +6,7 @@ import com.todo.util.ListUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -45,5 +43,10 @@ public class TaskVo {
         outerInterrupt = task.getOuterInterrupt();
         startedAt = task.getStartedAt();
         completedAt = task.getCompletedAt();
+    }
+
+    public void setTomatoClocks(List<TomatoClock> tomatoClocks) {
+        this.tomatoClocks = tomatoClocks;
+        this.setTomatoClockTimes(tomatoClocks.size());
     }
 }

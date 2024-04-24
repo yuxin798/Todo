@@ -2,7 +2,6 @@ package com.todo.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.todo.dto.TaskDto;
-import com.todo.entity.Task;
 import com.todo.service.TaskService;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
@@ -37,8 +36,8 @@ public class TaskController {
 
     @Operation(summary = "修改一项任务")
     @PutMapping("/")
-    public Result<Task> updateTask(@RequestBody TaskDto taskDto) {
-        Task task = taskService.updateTask(taskDto);
+    public Result<TaskVo> updateTask(@RequestBody TaskDto taskDto) {
+        TaskVo task = taskService.updateTask(taskDto);
         return Result.success(task);
     }
 
