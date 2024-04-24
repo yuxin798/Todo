@@ -17,20 +17,24 @@ public class UserDto {
     @NotBlank(message = "邮箱不能为空", groups = {Register.class, Login.class})
     @Email(message = "邮箱格式错误",groups = {Register.class, Login.class})
     private String email;
-    @NotBlank(message = "密码不能为空", groups = {Register.class, Login.class})
-    @Length(min = 6,max = 16, message = "密码长度必须在6-16范围内", groups = {Register.class})
+    @NotBlank(message = "密码不能为空", groups = {Register.class, Login.class, ModifyPassword.class})
+    @Length(min = 6,max = 16, message = "密码长度必须在6-16范围内", groups = {Register.class, ModifyPassword.class})
     private String password;
-    @NotBlank(message = "确认密码不能为空", groups = {Register.class})
+    @NotBlank(message = "确认密码不能为空", groups = {Register.class, ModifyPassword.class})
     private String confirmPassword;
-    @NotBlank(message = "验证码Key不能为空", groups = {Register.class})
+    @NotBlank(message = "验证码Key不能为空", groups = {Register.class, ModifyPassword.class})
     private String emailCodeKey;
-    @NotBlank(message = "验证码不能为空", groups = {Register.class})
+    @NotBlank(message = "验证码不能为空", groups = {Register.class, ModifyPassword.class})
     private String emailCode;
 
     public interface Login{
     }
 
     public interface Register{
+
+    }
+
+    public interface ModifyPassword {
 
     }
 }

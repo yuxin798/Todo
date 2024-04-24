@@ -56,7 +56,7 @@ public class UserController {
 
     @Operation(summary = "修改密码/忘记密码")
     @PostMapping("/modifyPassword")
-    public Result<String> modifyPassword(@RequestBody UserDto userDto){
+    public Result<String> modifyPassword(@RequestBody @Validated({UserDto.ModifyPassword.class}) UserDto userDto){
         return userServiceImpl.updatePassword(userDto);
     }
 }

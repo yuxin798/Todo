@@ -7,6 +7,7 @@
     <resultMap id="BaseResultMap" type="com.todo.entity.User">
             <id property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>
             <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
             <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
@@ -14,9 +15,9 @@
             <result property="deleted" column="deleted" jdbcType="TINYINT"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        user_id,user_name,password,
-        avatar,created_at,updated_at,
-        deleted
-    </sql>
+    <update id="updatePasswordByEmail">
+        update user
+        set password = #{password}
+        where email = #{email}
+    </update>
 </mapper>

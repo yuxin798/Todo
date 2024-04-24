@@ -39,6 +39,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/user/login").anonymous()
                         .requestMatchers("/user/register").anonymous()
                         .requestMatchers("/user/getEmailCodeKey").anonymous()
+                        .requestMatchers("/user/modifyPassword").anonymous()
                         .requestMatchers("/doc.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

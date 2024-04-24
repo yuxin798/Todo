@@ -11,6 +11,7 @@ import com.todo.entity.User;
 */
 public interface UserMapper extends BaseMapper<User> {
 
+    int updatePasswordByEmail(User user);
 }
 
 

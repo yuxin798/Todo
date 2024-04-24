@@ -71,10 +71,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (baseMapper.exists(queryWrapper)){
             return Result.error("帐号已存在，请更换邮箱");
         }
-        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey());
+        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
         if (!StringUtils.hasText(emailCode) || !emailCode.equals(userDto.getEmailCode())){
             return Result.error("邮箱验证码错误");
         }
+        redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultImageUtils.getRandomDefaultAvatar());
         if (this.save(user)){
@@ -86,21 +87,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public Result<String> updatePassword(UserDto userDto) {
-        if (!StringUtils.hasText(userDto.getPassword())){
-            return Result.error("请填写密码");
-        }else if (!StringUtils.hasText(userDto.getConfirmPassword())){
-            return Result.error("请填写确认密码");
-        }else if(!userDto.getPassword().equals(userDto.getConfirmPassword())){
-            return Result.error("密码和确认密码不一致");
-        }else if(!StringUtils.hasText(userDto.getEmailCodeKey())){
-            return Result.error("请填写邮箱验证码");
-        }else if(!redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey()).equals(userDto.getEmailCode())){
+        if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
+            return Result.error("两次密码不一致");
+        }
+        if (!StringUtils.hasText(userDto.getEmail())) {
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            String token = request.getHeader("token");
+            if (StringUtils.hasText(token)){
+                User user = JwtUtil.getUserByToken(token);
+                if(JwtUtil.verify(token, user)){
+                    userDto.setEmail(user.getEmail());
+                }
+            }
+        }
+        if(!StringUtils.hasText(userDto.getEmail())){
+            return Result.error("请填写邮箱");
+        }
+        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
+        if (!userDto.getEmailCode().equals(emailCode)){
             return Result.error("邮箱验证码错误");
         }
-        User user = UserContextUtil.getUser();
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        baseMapper.updateById(user);
-        return Result.success("密码修改成功");
+        redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        int count = baseMapper.updatePasswordByEmail(user);
+        if (count == 1){
+            return Result.success("密码修改成功");
+        }else {
+            return Result.error("网络繁忙，请稍后重试");
+        }
     }
 
     @Override
@@ -127,8 +143,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         message.setText("验证码为：" + code);
         mailSender.send(message);
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        redisTemplate.opsForValue().set(RedisConstant.EMAIL_VALIDATE_CODE + uuid, code, 1, TimeUnit.MINUTES);
-        System.out.println(code);
+        redisTemplate.opsForValue().set(RedisConstant.EMAIL_VALIDATE_CODE + uuid + email, code, 1, TimeUnit.MINUTES);
         return Result.success(uuid);
     }
 }

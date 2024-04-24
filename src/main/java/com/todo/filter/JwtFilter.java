@@ -24,6 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (matcher.match("/user/login", requestURI) ||
                 matcher.match("/user/register", requestURI) ||
                 matcher.match("/user/getEmailCodeKey", requestURI) ||
+                matcher.match("/user/modifyPassword", requestURI) ||
                 request.getMethod().equals("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;
