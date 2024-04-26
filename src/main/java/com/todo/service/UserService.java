@@ -24,4 +24,6 @@ public interface UserService extends IService<User> {
     Result<String> updateUserName(String userName);
 
     Result<String> modifyAvatar(String avatar);
+
+    Result<String> logout();
 }

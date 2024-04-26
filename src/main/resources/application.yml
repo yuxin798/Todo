@@ -56,7 +56,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-delete-field: deleted
 
-trust:
+todo:
   minio:
     endpoint: http://8.130.17.7:9000
     access-key: minioadmin

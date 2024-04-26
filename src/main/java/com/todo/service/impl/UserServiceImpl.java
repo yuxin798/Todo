@@ -1,6 +1,7 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.UserDto;
@@ -61,19 +62,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             return Result.error("两次密码不一致");
         }
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getEmail, userDto.getEmail());
-        if (baseMapper.exists(queryWrapper)){
+        User queryUser = baseMapper.findUserByEmail(userDto.getEmail());
+        //用户已注册且未注销
+        if (queryUser != null && queryUser.getDeleted() == 0){
             return Result.error("帐号已存在，请更换邮箱");
         }
+        //邮箱验证码验证
         String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
         if (!StringUtils.hasText(emailCode) || !emailCode.equals(userDto.getEmailCode())){
             return Result.error("邮箱验证码错误");
         }
-        redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+        //密码加密
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        //用户已注册且已注销，重新注册
+        if(queryUser != null && queryUser.getDeleted() == 1){
+            if (baseMapper.updateUserByUserId(queryUser.getUserId(), userDto.getUserName(), userDto.getPassword())){
+                redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+                return Result.success("注册成功");
+            }else {
+                return Result.error("网络繁忙，请稍后重试");
+            }
+        }
+        //用户从未注册过
         User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultGeneratorUtils.getRandomDefaultAvatar(), DefaultGeneratorUtils.getRandomDefaultSignature());
         if (this.save(user)){
+            redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
             return Result.success("注册成功");
         }else {
             return Result.error("网络繁忙，请稍后重试");
@@ -86,6 +99,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return Result.error("两次密码不一致");
         }
         if (!StringUtils.hasText(userDto.getEmail())) {
+            //未传入email，校验token是否有效，从token中获取email
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
             String token = request.getHeader("token");
             if (StringUtils.hasText(token)){
@@ -95,6 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 }
             }
         }
+        //校验email是否为null
         if(!StringUtils.hasText(userDto.getEmail())){
             return Result.error("请填写邮箱");
         }
@@ -145,7 +160,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Result<String> updateSignature(String signature) {
         Long userId = UserContextUtil.getUser().getUserId();
-        int count = baseMapper.updateSignatureByUserId(signature, userId);
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>(User.class)
+                .set(User::getSignature, signature)
+                .eq(User::getUserId, userId);
+        int count = baseMapper.update(updateWrapper);
         if (count == 1){
             return Result.success("修改成功");
         }
@@ -154,7 +172,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Result<String> updateUserName(String userName) {
         Long userId = UserContextUtil.getUser().getUserId();
-        int count = baseMapper.updateUserNameByUserId(userName, userId);
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>(User.class)
+                .set(User::getUserName, userName)
+                .eq(User::getUserId, userId);
+        int count = baseMapper.update(updateWrapper);
         if (count == 1){
             return Result.success("修改成功");
         }
@@ -164,7 +185,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Result<String> modifyAvatar(String avatar) {
         Long userId = UserContextUtil.getUser().getUserId();
-        int count = baseMapper.updateAvatarByUserId(avatar, userId);
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>(User.class)
+                .set(User::getAvatar, avatar)
+                .eq(User::getUserId, userId);
+        int count = baseMapper.update(updateWrapper);
         if (count == 1){
             return Result.success("修改成功");
         }
@@ -179,6 +203,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         UserVo userVo = new UserVo(user.getUserId(), user.getUserName(), user.getAvatar(), user.getSignature());
         return Result.success(userVo);
+    }
+
+    @Override
+    public Result<String> logout() {
+        Long userId = UserContextUtil.getUser().getUserId();
+        int count = baseMapper.deleteById(userId);
+        if (count == 1){
+            return Result.success("注销成功");
+        }
+        return Result.success("用户已注销");
     }
 }
 

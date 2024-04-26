@@ -35,4 +35,16 @@
         set avatar = #{avatar}
         where user_id = #{userId}
     </update>
+    <update id="updateUserByUserId">
+        update user
+        set user_name = #{userName},
+            password = #{password},
+            deleted = 0
+        where user_id = #{userId}
+    </update>
+    <select id="findUserByEmail" resultType="com.todo.entity.User">
+        select *
+        from user
+        where email = #{email}
+    </select>
 </mapper>

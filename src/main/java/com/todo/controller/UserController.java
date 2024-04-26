@@ -34,12 +34,12 @@ public class UserController {
     private FileUploadService fileUploadService;
 
     /*
-     * 登录
+     *获取验证码Key
      */
-    @Operation(summary = "登录")
-    @PostMapping("/login")
-    public Result<String> login(@RequestBody @Validated({UserDto.Login.class}) UserDto userDto) {
-        return userServiceImpl.login(userDto);
+    @Operation(summary = "获取验证码Key")
+    @GetMapping("/getEmailCodeKey")
+    public Result<String> getEmailCodeKey(String email){
+        return userServiceImpl.sendEmail(email);
     }
 
     /*
@@ -52,13 +52,14 @@ public class UserController {
     }
 
     /*
-     *获取验证码Key
+     * 登录
      */
-    @Operation(summary = "获取验证码Key")
-    @GetMapping("/getEmailCodeKey")
-    public Result<String> getEmailCodeKey(String email){
-        return userServiceImpl.sendEmail(email);
+    @Operation(summary = "登录")
+    @PostMapping("/login")
+    public Result<String> login(@RequestBody @Validated({UserDto.Login.class}) UserDto userDto) {
+        return userServiceImpl.login(userDto);
     }
+
 
     /*
      *修改密码/忘记密码
@@ -113,5 +114,14 @@ public class UserController {
     @GetMapping("/getUserInfo")
     public Result<UserVo> getUserInfo(){
         return userServiceImpl.getUserInfo();
+    }
+
+    /*
+     * 用户注销
+     */
+    @Operation(summary = "用户注销")
+    @GetMapping("/logout")
+    public Result<String> logout(){
+        return userServiceImpl.logout();
     }
 }

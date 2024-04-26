@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 @Data
-@ConfigurationProperties(prefix = "trust.minio")
+@ConfigurationProperties(prefix = "todo.minio")
 public class MinioProperties {
     private String endpoint;
     private String accessKey;

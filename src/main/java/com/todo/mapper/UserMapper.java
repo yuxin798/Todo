@@ -2,6 +2,7 @@ package com.todo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.todo.entity.User;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 28080
@@ -18,6 +19,10 @@ public interface UserMapper extends BaseMapper<User> {
     int updateUserNameByUserId(String userName, Long userId);
 
     int updateAvatarByUserId(String avatar, Long userId);
+
+    User findUserByEmail(String email);
+
+    boolean updateUserByUserId(@Param("userId") Long userId, @Param("userName")String userName, @Param("password")String password);
 }
 
 
