@@ -108,11 +108,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     @Override
     public List<UserVo> listUsers(Long roomId) {
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .select(UserRoom::getUserId)
                 .eq(UserRoom::getRoomId, roomId);
-        List<Long> ids = userRoomMapper.selectList(wrapper)
-                .stream()
-                .map(UserRoom::getUserId)
-                .toList();
+        List<Long> ids = userRoomMapper.selectObjs(wrapper);
 
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);
@@ -127,11 +125,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         User user = UserContextUtil.getUser();
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .select(UserRoom::getRoomId)
                 .eq(UserRoom::getUserId, user.getUserId());
-        List<Long> ids = userRoomMapper.selectList(wrapper)
-                .stream()
-                .map(UserRoom::getRoomId)
-                .toList();
+        List<Long> ids = userRoomMapper.selectObjs(wrapper);
 
         if (CollectionUtils.isEmpty(ids)) {
             return new ArrayList<>();
