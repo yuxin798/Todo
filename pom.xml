@@ -8,10 +8,10 @@
         <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.trust</groupId>
-    <artifactId>Todo</artifactId>
+    <groupId>com.todo</groupId>
+    <artifactId>ToDo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Trust</name>
+    <name>ToDo</name>
     <description>Trust</description>
     <properties>
         <java.version>17</java.version>
