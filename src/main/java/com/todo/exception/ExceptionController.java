@@ -3,6 +3,7 @@ package com.todo.exception;
 import com.todo.vo.Result;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -46,5 +47,4 @@ public class ExceptionController {
         String message = e.getAllErrors().get(0).getDefaultMessage();
         return Result.error(message);
     }
-
 }

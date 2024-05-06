@@ -121,11 +121,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        int count = baseMapper.updatePasswordByEmail(user);
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>(User.class)
+                .set(User::getPassword, user.getPassword())
+                .eq(User::getEmail, user.getEmail());
+        int count = baseMapper.update(updateWrapper);
         if (count == 1){
             return Result.success("密码修改成功");
         }else {
-            return Result.error("网络繁忙，请稍后重试");
+            return Result.error("用户已注销");
         }
     }
 

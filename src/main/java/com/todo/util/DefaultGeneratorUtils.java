@@ -7,6 +7,7 @@ public class DefaultGeneratorUtils {
     //TODO默认头像
     static final ArrayList<String> defaultAvatars;
     static final ArrayList<String> defaultSignatures;
+    static final ArrayList<String> defaultBackgrounds;
     static {
         defaultAvatars = new ArrayList<>();
         defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/th.png");
@@ -21,6 +22,13 @@ public class DefaultGeneratorUtils {
         defaultSignatures.add("学而不思则罔，思而不学则殆");
         defaultSignatures.add("不积跬步，无以至千里");
         defaultSignatures.add("不积小流，无以成江海");
+    }
+
+    static {
+        defaultBackgrounds = new ArrayList<>();
+        for (int i = 1; i <= 556; i++) {
+            defaultBackgrounds.add("http://8.130.17.7:9000/todo-bucket/background/" + i + ".jpg");
+        }
     }
 
     /**
@@ -43,5 +51,15 @@ public class DefaultGeneratorUtils {
         Random random = new Random();
         int randomNumber = random.nextInt(size);
         return defaultSignatures.get(randomNumber);
+    }
+
+    /**
+     * 生成随机任务背景图片
+     */
+    public static String getRandomDefaultBackground() {
+        int size = defaultBackgrounds.size();
+        Random random = new Random();
+        int randomNumber = random.nextInt(size);
+        return defaultBackgrounds.get(randomNumber);
     }
 }
