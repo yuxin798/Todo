@@ -1,16 +1,12 @@
 package com.todo.exception;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,8 +14,11 @@ import java.io.PrintWriter;
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint, AccessDeniedHandler {
 
+    /*
+     * 捕获401认证失败异常
+     */
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.setStatus(200);
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
@@ -28,8 +27,11 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint,
         writer.close();
     }
 
+    /*
+     * 捕获403授权失败异常
+     */
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         response.setStatus(200);
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
