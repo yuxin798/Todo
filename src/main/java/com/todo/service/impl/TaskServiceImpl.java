@@ -141,6 +141,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         return baseMapper.selectList(wrapper)
                 .stream()
                 .map(TaskVo::new)
+                .peek(taskVo -> {
+                    LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<TomatoClock>(TomatoClock.class)
+                            .eq(TomatoClock::getTaskId, taskVo.getTaskId());
+                    List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(w);
+                    taskVo.setTomatoClocks(tomatoClocks);
+                })
                 .toList();
     }
 }

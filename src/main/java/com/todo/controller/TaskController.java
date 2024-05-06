@@ -72,7 +72,7 @@ public class TaskController {
     }
 
     @Operation(summary = "查询用户的全部任务")
-    @GetMapping("/")
+    @GetMapping("/all")
     public Result<List<TaskVo>> findAll() {
         return Result.success(taskService.findAll());
     }

@@ -12,13 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -43,25 +39,57 @@ public class StatisticController {
 
         List<TaskVo> tasks = taskServiceImpl.findAll();
 
+        // 专注天数
+        long tomatoDays;
+        // 日均专注时长
+        long avgTomatoDuration;
+        // 日均专注番茄数
+        long avgTomatoTimes;
         // 专注总时间次数
         AtomicLong tomatoTimes = new AtomicLong(0);
         // 专注总时间
         AtomicLong tomatoDuration = new AtomicLong(0);
         // 某天专注次数
         // 某天专注时长
-        TreeMap<Long, List<TomatoClock>> dayTomato;
+        TreeMap<Long, Map<String, Long>> dayTomato;
 
         dayTomato = tasks.stream()
                 .parallel()
                 .flatMap(t -> t.getTomatoClocks().stream())
-                .filter(t -> t.getTaskStatus() == 0)
+                .filter(t -> t.getClockStatus() == 0)
                 .peek(t -> {
                     tomatoDuration.addAndGet(t.getCompletedAt().toInstant().getEpochSecond() - t.getStartedAt().toInstant().getEpochSecond());
                     tomatoTimes.incrementAndGet();
                 })
-                .collect(Collectors.groupingBy(t -> LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).toEpochDay(), TreeMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(
+                    t -> LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8")),
+                    TreeMap::new,
+                    Collectors.mapping(t -> {
+                        HashMap<String, Long> m = new HashMap<>();
+                        m.put("tomatoTimes", 1L);
+                        m.put("tomatoDuration", t.getCompletedAt().toInstant().getEpochSecond() - t.getStartedAt().toInstant().getEpochSecond());
+                        return m;
+                    }, Collectors.reducing(
+                            new HashMap<>(),
+                            (a, b) -> {
+                                a.merge("tomatoTimes", b.get("tomatoTimes"), Long::sum);
+                                a.merge("tomatoDuration", b.get("tomatoDuration"), Long::sum);
+                                return a;
+                            }
+                    ))
+                ));
 
         // 日均时长
+        tomatoDays = dayTomato.size();
+        avgTomatoDuration = tomatoDuration.get() / tomatoDays;
+        avgTomatoTimes = tomatoTimes.get() / tomatoDays;
+
+        map.put("tomatoDays", tomatoDays);
+        map.put("avgTomatoTimes", avgTomatoTimes);
+        map.put("avgTomatoDuration", avgTomatoDuration);
+        map.put("tomatoTimes", tomatoTimes.get());
+        map.put("tomatoDuration", tomatoDuration.get());
+        map.put("dayTomato", dayTomato);
 
         return Result.success(map);
     }
