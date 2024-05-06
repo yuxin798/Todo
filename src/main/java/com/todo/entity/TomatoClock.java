@@ -91,6 +91,12 @@ public class TomatoClock implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
+    public TomatoClock(Long taskId, Integer sequence, Integer taskStatus) {
+        this.taskId = taskId;
+        this.sequence = sequence;
+        this.taskStatus = taskStatus;
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {

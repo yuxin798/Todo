@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -50,7 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 new CustomAuthenticationEntryPoint().commence(request, response, new AuthenticationException("认证失败") {});
             }
         }else {
-            new CustomAuthenticationEntryPoint().handle(request, response, new AccessDeniedException("认证失败") {});
+            new CustomAuthenticationEntryPoint().commence(request, response, new AuthenticationException("认证失败") {});
         }
     }
 }
