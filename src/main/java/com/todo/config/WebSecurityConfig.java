@@ -1,8 +1,6 @@
 package com.todo.config;
 
-import com.todo.exception.CustomAuthenticationEntryPoint;
 import com.todo.filter.JwtFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,9 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-
-    @Autowired
-    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -49,8 +44,6 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class)
-//                .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint))
-//                .exceptionHandling(ex -> ex.accessDeniedHandler(customAuthenticationEntryPoint))
                 .build();
     }
 

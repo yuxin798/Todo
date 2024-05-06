@@ -33,7 +33,6 @@ public class DefaultGeneratorUtils {
 
     /**
      * 生成随机默认头像
-     * @return
      */
     public static String getRandomDefaultAvatar() {
         int size = defaultAvatars.size();
@@ -44,7 +43,6 @@ public class DefaultGeneratorUtils {
 
     /**
      * 生成随机默认个性签名
-     * @return
      */
     public static String getRandomDefaultSignature() {
         int size = defaultSignatures.size();

@@ -15,10 +15,8 @@ import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.TaskVo;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -87,8 +85,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(taskDto.getStartedAt() != null, Task::getStartedAt, taskDto.getStartedAt())
                 .set(taskDto.getCompletedAt() != null, Task::getCompletedAt, taskDto.getCompletedAt())
                 .eq(Task::getTaskId, taskDto.getTaskId());
-        baseMapper.update(task, wrapper);
 
+        baseMapper.update(task, wrapper);
         return findById(task.getTaskId());
     }
 

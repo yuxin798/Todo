@@ -74,8 +74,11 @@ public class UserController {
      * 上传头像
      */
     @Operation(summary = "上传头像")
-    @PostMapping("/uploadAvatar")
-    public Result<String> uploadAvatar(@NotNull(message = "头像不能为空") @RequestParam MultipartFile avatar){
+    @PostMapping( "/uploadAvatar")
+    public Result<String> uploadAvatar(MultipartFile avatar){
+        if (avatar == null || avatar.isEmpty()) {
+            return Result.error("头像不能为空");
+        }
         String avatarUrl = fileUploadService.save(avatar, MinioConstant.USER_ROOT_PATH);
         return Result.success(avatarUrl);
     }

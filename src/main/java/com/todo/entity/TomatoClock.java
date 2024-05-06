@@ -37,8 +37,8 @@ public class TomatoClock implements Serializable {
     /**
      * 
      */
-    @TableField(value = "task_status")
-    private Integer taskStatus;
+    @TableField(value = "clock_status")
+    private Integer clockStatus;
 
     /**
      * 
@@ -91,10 +91,10 @@ public class TomatoClock implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public TomatoClock(Long taskId, Integer sequence, Integer taskStatus) {
+    public TomatoClock(Long taskId, Integer sequence, Integer clockStatus) {
         this.taskId = taskId;
         this.sequence = sequence;
-        this.taskStatus = taskStatus;
+        this.clockStatus = clockStatus;
     }
 
     @Override
@@ -112,7 +112,7 @@ public class TomatoClock implements Serializable {
         return (this.getClockId() == null ? other.getClockId() == null : this.getClockId().equals(other.getClockId()))
             && (this.getTaskId() == null ? other.getTaskId() == null : this.getTaskId().equals(other.getTaskId()))
             && (this.getSequence() == null ? other.getSequence() == null : this.getSequence().equals(other.getSequence()))
-            && (this.getTaskStatus() == null ? other.getTaskStatus() == null : this.getTaskStatus().equals(other.getTaskStatus()))
+            && (this.getClockStatus() == null ? other.getClockStatus() == null : this.getClockStatus().equals(other.getClockStatus()))
             && (this.getStopReason() == null ? other.getStopReason() == null : this.getStopReason().equals(other.getStopReason()))
             && (this.getInnerInterrupt() == null ? other.getInnerInterrupt() == null : this.getInnerInterrupt().equals(other.getInnerInterrupt()))
             && (this.getOuterInterrupt() == null ? other.getOuterInterrupt() == null : this.getOuterInterrupt().equals(other.getOuterInterrupt()))
@@ -130,7 +130,7 @@ public class TomatoClock implements Serializable {
         result = prime * result + ((getClockId() == null) ? 0 : getClockId().hashCode());
         result = prime * result + ((getTaskId() == null) ? 0 : getTaskId().hashCode());
         result = prime * result + ((getSequence() == null) ? 0 : getSequence().hashCode());
-        result = prime * result + ((getTaskStatus() == null) ? 0 : getTaskStatus().hashCode());
+        result = prime * result + ((getClockStatus() == null) ? 0 : getClockStatus().hashCode());
         result = prime * result + ((getStopReason() == null) ? 0 : getStopReason().hashCode());
         result = prime * result + ((getInnerInterrupt() == null) ? 0 : getInnerInterrupt().hashCode());
         result = prime * result + ((getOuterInterrupt() == null) ? 0 : getOuterInterrupt().hashCode());
@@ -151,7 +151,7 @@ public class TomatoClock implements Serializable {
         sb.append(", clockId=").append(clockId);
         sb.append(", taskId=").append(taskId);
         sb.append(", sequence=").append(sequence);
-        sb.append(", taskStatus=").append(taskStatus);
+        sb.append(", clockStatus=").append(clockStatus);
         sb.append(", stopReason=").append(stopReason);
         sb.append(", innerInterrupt=").append(innerInterrupt);
         sb.append(", outerInterrupt=").append(outerInterrupt);
