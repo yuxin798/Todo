@@ -33,8 +33,7 @@ public class ExceptionController {
      */
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public Result<?> argumentException(MethodArgumentNotValidException  e) {
-        String result = e.getBindingResult().getFieldError().getDefaultMessage();
-        return Result.error(e.getMessage());
+        return Result.error(e.getBindingResult().getFieldError().getDefaultMessage());
     }
 
     /**
