@@ -1,7 +1,6 @@
 package com.todo.constraints;
 
-import com.todo.constraints.validators.AvatarLinkValidator;
-import com.todo.constraints.validators.ValidNameValidator;
+import com.todo.constraints.validators.ValidDateValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -12,15 +11,15 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Constraint(validatedBy = ValidNameValidator.class)
+@Constraint(validatedBy = ValidDateValidator.class)
 @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
 @Retention(RUNTIME)
-public @interface ValidName {
-    int min() default 0;
+public @interface ValidDate {
+    long before() default Long.MIN_VALUE;
 
-    int max() default Integer.MAX_VALUE;
+    long after() default Long.MIN_VALUE;
 
-    String message() default "";
+    String message() default "日期时间不合法";
 
     Class<?>[] groups() default { };
 

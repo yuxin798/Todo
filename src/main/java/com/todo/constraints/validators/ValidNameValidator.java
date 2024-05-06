@@ -15,7 +15,7 @@ public class ValidNameValidator implements ConstraintValidator<ValidName, String
         ConstraintValidator.super.initialize(constraintAnnotation);
         min = constraintAnnotation.min();
         max = constraintAnnotation.max();
-        message = constraintAnnotation.message();
+        message = "自习室名必须为" + min + "~" + max + "个字符";
         groups = constraintAnnotation.groups();
     }
 

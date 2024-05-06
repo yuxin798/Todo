@@ -3,14 +3,10 @@ package com.todo.dto;
 import com.todo.constraints.AvatarLink;
 import com.todo.constraints.ValidName;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.min;
-import org.hibernate.validator.constraints.Length;
 
 @Data
 @AllArgsConstructor
