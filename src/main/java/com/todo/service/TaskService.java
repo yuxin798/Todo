@@ -6,6 +6,8 @@ import com.todo.dto.TaskDto;
 import com.todo.entity.Task;
 import com.todo.vo.TaskVo;
 
+import java.util.List;
+
 /**
 * @author 28080
 * @description 针对表【task】的数据库操作Service
@@ -22,4 +24,6 @@ public interface TaskService extends IService<Task> {
     Page<TaskVo> findTaskPage(TaskDto taskDto, int pageNum, int pageSize);
 
     TaskVo findById(Long taskId);
+
+    List<TaskVo> findAll();
 }

@@ -135,6 +135,16 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         taskVo.setTomatoClocks(tomatoClocks);
         return taskVo;
     }
+
+    @Override
+    public List<TaskVo> findAll() {
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUser().getUserId());
+        return baseMapper.selectList(wrapper)
+                .stream()
+                .map(TaskVo::new)
+                .toList();
+    }
 }
 
 

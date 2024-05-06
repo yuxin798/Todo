@@ -1,8 +1,11 @@
 package com.todo.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.todo.dto.TaskDto;
+import com.todo.entity.Task;
 import com.todo.service.TaskService;
+import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +14,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "任务API")
 @RestController
@@ -64,5 +69,11 @@ public class TaskController {
             @PathVariable Long taskId) {
         TaskVo task = taskService.findById(taskId);
         return Result.success(task);
+    }
+
+    @Operation(summary = "查询用户的全部任务")
+    @GetMapping("/")
+    public Result<List<TaskVo>> findAll() {
+        return Result.success(taskService.findAll());
     }
 }
