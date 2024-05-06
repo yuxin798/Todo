@@ -7,6 +7,9 @@ import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "任务API")
@@ -22,21 +25,23 @@ public class TaskController {
 
     @Operation(summary = "添加一项任务")
     @PostMapping("/")
-    public Result<TaskVo> addTask(@RequestBody TaskDto taskDto) {
+    public Result<TaskVo> addTask(@Validated(TaskDto.AddTask.class) @RequestBody TaskDto taskDto) {
         TaskVo task = taskService.addTask(taskDto);
         return Result.success(task);
     }
 
     @Operation(summary = "删除一项任务")
     @DeleteMapping("/")
-    public Result<?> removeTask(Long taskId) {
+    public Result<?> removeTask(
+            @NotNull(message = "任务id不能为null")
+            @Min(value = 1, message = "任务id的最小值为1") Long taskId) {
         taskService.removeTask(taskId);
         return Result.success();
     }
 
     @Operation(summary = "修改一项任务")
     @PutMapping("/")
-    public Result<TaskVo> updateTask(@RequestBody TaskDto taskDto) {
+    public Result<TaskVo> updateTask(@Validated() @RequestBody TaskDto taskDto) {
         TaskVo task = taskService.updateTask(taskDto);
         return Result.success(task);
     }
@@ -53,7 +58,10 @@ public class TaskController {
 
     @Operation(summary = "查询一个任务")
     @GetMapping("/{taskId}")
-    public Result<TaskVo> findById(@PathVariable Long taskId) {
+    public Result<TaskVo> findById(
+            @NotNull(message = "任务id不能为null")
+            @Min(value = 1, message = "任务id的最小值为1")
+            @PathVariable Long taskId) {
         TaskVo task = taskService.findById(taskId);
         return Result.success(task);
     }

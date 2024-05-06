@@ -9,8 +9,15 @@ import com.todo.vo.RoomVo;
 import com.todo.vo.UserVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.checkerframework.checker.units.qual.N;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -34,7 +41,7 @@ public class RoomController {
      */
     @Operation(summary = "创建自习室")
     @PostMapping("/create")
-    public Result<RoomVo> createRoom(@RequestBody RoomDto roomDto) {
+    public Result<RoomVo> createRoom(@Validated(RoomDto.CreateRoom.class) @RequestBody RoomDto roomDto) {
         RoomVo room = roomService.createRoom(roomDto);
         return Result.success(room);
     }
@@ -45,7 +52,9 @@ public class RoomController {
      */
     @Operation(summary = "生成邀请码")
     @GetMapping("/generateInvitationCode")
-    public Result<String> generateInvitationCode(Long roomId) {
+    public Result<String> generateInvitationCode(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         String code = roomService.generateInvitationCode(roomId);
         return Result.success(code);
     }
@@ -56,7 +65,7 @@ public class RoomController {
      */
     @Operation(summary = "接受邀请")
     @PostMapping("/acceptInvitation")
-    public Result<String> acceptInvitation(String invitationCode) {
+    public Result<String> acceptInvitation(@NotBlank(message = "邀请码不能为空") String invitationCode) {
         roomService.acceptInvitation(invitationCode);
         return Result.success();
     }
@@ -67,7 +76,9 @@ public class RoomController {
      */
     @Operation(summary = "查询自习室中的所有用户")
     @GetMapping("/user/list")
-    public Result<List<UserVo>> listUsers(Long roomId) {
+    public Result<List<UserVo>> listUsers(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         List<UserVo> users = roomService.listUsers(roomId);
         return Result.success(users);
     }
@@ -88,7 +99,12 @@ public class RoomController {
      */
     @Operation(summary = "管理员移除用户")
     @DeleteMapping("/user/remove")
-    public Result<?> removeUser(Long roomId, Long userId) {
+    public Result<?> removeUser(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId,
+
+            @NotNull(message = "用户id不能为空")
+            @Min(value = 1, message = "用户id必须大于等于1") Long userId) {
         roomService.removeUser(roomId, userId);
         return Result.success();
     }
@@ -99,7 +115,9 @@ public class RoomController {
      */
     @Operation(summary = "用户退出自习室")
     @DeleteMapping("/user/exit")
-    public Result<?> userExit(Long roomId) {
+    public Result<?> userExit(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         roomService.userExit(roomId);
         return Result.success();
     }
@@ -109,7 +127,9 @@ public class RoomController {
      */
     @Operation(summary = "删除自习室")
     @DeleteMapping("/")
-    public Result<?> deleteRoom(Long roomId) {
+    public Result<?> deleteRoom(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         roomService.deleteRoom(roomId);
         return Result.success();
     }
@@ -119,7 +139,7 @@ public class RoomController {
      */
     @Operation(summary = "修改自习室")
     @PutMapping("/update")
-    public Result<?> updateRoom(@RequestBody RoomDto roomDto) {
+    public Result<?> updateRoom(@Validated(RoomDto.UpdateRoom.class) @RequestBody RoomDto roomDto) {
         roomService.updateRoom(roomDto);
         return Result.success();
     }
@@ -130,9 +150,12 @@ public class RoomController {
     @Operation(summary = "查询自习室")
     @GetMapping("/")
     public Result<Page<Room>> findRooms(
-            RoomDto roomDto,
+            @Validated(RoomDto.FindRoom.class) RoomDto roomDto,
             @RequestParam(required = false, defaultValue = "0") int pageNum,
-            @RequestParam(required = false, defaultValue = "20") int pageSize) {
+            @RequestParam(required = false, defaultValue = "20") int pageSize, Errors errors) {
+        if (errors.hasErrors())
+            throw new RuntimeException(errors.getErrorCount() + errors.getAllErrors().get(0).getDefaultMessage());
+
         Page<Room> page = roomService.findRooms(roomDto, pageNum, pageSize);
         return Result.success(page);
     }
@@ -142,7 +165,9 @@ public class RoomController {
      */
     @Operation(summary = "用户申请加入自习室")
     @PostMapping("/user/requestJoin")
-    public Result<?> requestJoin(Long roomId) {
+    public Result<?> requestJoin(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         roomService.requestJoin(roomId);
         return Result.success();
     }
@@ -152,7 +177,12 @@ public class RoomController {
      */
     @Operation(summary = "管理员同意用户加入自习室")
     @PostMapping("/manager/acceptRequest")
-    public Result<?> acceptRequest(Long roomId, Long userId) {
+    public Result<?> acceptRequest(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId,
+
+            @NotNull(message = "用户id不能为空")
+            @Min(value = 1, message = "用户id必须大于等于1") Long userId) {
         roomService.acceptRequest(roomId, userId);
         return Result.success();
     }
@@ -162,7 +192,9 @@ public class RoomController {
      */
     @Operation(summary = "管理员查询所有的加入自习室的请求")
     @GetMapping("/manager/requests")
-    public Result<List<UserVo>> findRequests(Long roomId) {
+    public Result<List<UserVo>> findRequests(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         List<UserVo> users = roomService.findRequests(roomId);
         return Result.success(users);
     }
