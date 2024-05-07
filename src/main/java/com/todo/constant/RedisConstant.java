@@ -10,4 +10,7 @@ public class RedisConstant {
 
     // 用户申请加入自习室
     public static final String ROOM_REQUEST_JOIN = "room:request:join:";
+
+    // 用户的统计信息
+    public static final String USER_STATISTIC = "user:statistic:";
 }
