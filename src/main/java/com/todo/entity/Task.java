@@ -63,6 +63,12 @@ public class Task implements Serializable {
     private Integer taskStatus;
 
     /**
+     *
+     */
+    @TableField(value = "background")
+    private String background;
+
+    /**
      * 
      */
     @TableField(value = "inner_interrupt")
@@ -107,10 +113,11 @@ public class Task implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public Task(Long userId, String taskName, String estimate) {
+    public Task(Long userId, String taskName, String estimate, String background) {
         this.userId = userId;
         this.taskName = taskName;
         this.estimate = estimate;
+        this.background = background;
 
         this.setTomatoClockTimes(0);
         this.setStopTimes(0);
@@ -138,6 +145,7 @@ public class Task implements Serializable {
             && (this.getTomatoClockTimes() == null ? other.getTomatoClockTimes() == null : this.getTomatoClockTimes().equals(other.getTomatoClockTimes()))
             && (this.getStopTimes() == null ? other.getStopTimes() == null : this.getStopTimes().equals(other.getStopTimes()))
             && (this.getTaskStatus() == null ? other.getTaskStatus() == null : this.getTaskStatus().equals(other.getTaskStatus()))
+            && (this.getBackground() == null ? other.getBackground() == null : this.getBackground().equals(other.getBackground()))
             && (this.getInnerInterrupt() == null ? other.getInnerInterrupt() == null : this.getInnerInterrupt().equals(other.getInnerInterrupt()))
             && (this.getOuterInterrupt() == null ? other.getOuterInterrupt() == null : this.getOuterInterrupt().equals(other.getOuterInterrupt()))
             && (this.getStartedAt() == null ? other.getStartedAt() == null : this.getStartedAt().equals(other.getStartedAt()))
@@ -158,6 +166,7 @@ public class Task implements Serializable {
         result = prime * result + ((getTomatoClockTimes() == null) ? 0 : getTomatoClockTimes().hashCode());
         result = prime * result + ((getStopTimes() == null) ? 0 : getStopTimes().hashCode());
         result = prime * result + ((getTaskStatus() == null) ? 0 : getTaskStatus().hashCode());
+        result = prime * result + ((getBackground() == null) ? 0 : getBackground().hashCode());
         result = prime * result + ((getInnerInterrupt() == null) ? 0 : getInnerInterrupt().hashCode());
         result = prime * result + ((getOuterInterrupt() == null) ? 0 : getOuterInterrupt().hashCode());
         result = prime * result + ((getStartedAt() == null) ? 0 : getStartedAt().hashCode());
@@ -181,6 +190,7 @@ public class Task implements Serializable {
         sb.append(", tomatoClockTimes=").append(tomatoClockTimes);
         sb.append(", stopTimes=").append(stopTimes);
         sb.append(", taskStatus=").append(taskStatus);
+        sb.append(", background=").append(background);
         sb.append(", innerInterrupt=").append(innerInterrupt);
         sb.append(", outerInterrupt=").append(outerInterrupt);
         sb.append(", startedAt=").append(startedAt);

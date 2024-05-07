@@ -25,6 +25,7 @@ public class TaskVo {
     private Integer stopTimes;
 
     private Integer taskStatus;
+    private String background;
     private Integer innerInterrupt;
     private Integer outerInterrupt;
 
@@ -39,6 +40,7 @@ public class TaskVo {
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
         taskStatus = task.getTaskStatus();
+        background = task.getBackground();
         innerInterrupt = task.getInnerInterrupt();
         outerInterrupt = task.getOuterInterrupt();
         startedAt = task.getStartedAt();
