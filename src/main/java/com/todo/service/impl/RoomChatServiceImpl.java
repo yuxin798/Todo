@@ -72,7 +72,7 @@ public class RoomChatServiceImpl implements RoomChatService {
                             AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userVo.getUserId(),
                             Binding.DestinationType.QUEUE,
                             AmqpConstant.EXCHANGE_CHAT_ROOM + roomId,
-                            AmqpConstant.QUEUE_CHAT_ROOM + roomId,
+                            AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userVo.getUserId(),
                             null)
                     );
                 });
@@ -81,7 +81,7 @@ public class RoomChatServiceImpl implements RoomChatService {
 
         amqpTemplate.convertAndSend(
                 AmqpConstant.EXCHANGE_CHAT_ROOM + roomId,
-                AmqpConstant.QUEUE_CHAT_ROOM + roomId,
+                AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + message.getToUserId(),
                 message
         );
         log.info("==> send message success. roomId: {}, message: {}", roomId, message);

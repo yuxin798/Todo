@@ -22,12 +22,12 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-<!--        web服务-->
+        <!--        web服务-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-<!--        安全相关-->
+        <!--        安全相关-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -42,12 +42,12 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>4.5.0</version>
         </dependency>
-<!--        redis相关-->
+        <!--        redis相关-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-<!--        数据库相关-->
+        <!--        数据库相关-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -58,44 +58,45 @@
             <artifactId>druid</artifactId>
             <version>1.2.20</version>
         </dependency>
-<!--        mybatis-plus相关-->
+        <!--        mybatis-plus相关-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>3.5.5</version>
         </dependency>
-<!--        代码生成器-->
+        <!--        代码生成器-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
             <version>3.5.5</version>
         </dependency>
-<!--        Freemarker引擎模板-->
+        <!--        Freemarker引擎模板-->
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
         </dependency>
-<!--        Minio-->
+        <!--        Minio-->
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.5.7</version>
         </dependency>
-<!--        邮箱验证-->
+        <!--        邮箱验证-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-<!--        校验-->
+        <!--        校验-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-<!--        工具类-->
+        <!--        工具类-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>
+        <!-- websocket -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
@@ -114,6 +115,12 @@
             <version>4.5.7</version>
         </dependency>
 
+        <!-- Docker Image -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.springframework.boot</groupId> -->
+        <!--     <artifactId>spring-boot-docker-compose</artifactId> -->
+        <!--     <optional>true</optional> -->
+        <!-- </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

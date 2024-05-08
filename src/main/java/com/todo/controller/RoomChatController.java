@@ -23,12 +23,13 @@ public class RoomChatController {
         this.roomChatServiceImpl = roomChatServiceImpl;
     }
 
-    @Operation(summary = "发送消息")
-    @PostMapping("/send")
-    public Result<?> sendMessage(@RequestBody Message message) {
-        roomChatServiceImpl.sendMessage(message);
-        return Result.success();
-    }
+    // 用 websocket 发送消息
+    // @Operation(summary = "发送消息")
+    // @PostMapping("/send")
+    // public Result<?> sendMessage(@RequestBody Message message) {
+    //     roomChatServiceImpl.sendMessage(message);
+    //     return Result.success();
+    // }
 
     @Operation(summary = "接收消息")
     @GetMapping("/receive")
@@ -36,9 +37,4 @@ public class RoomChatController {
         List<Message> message = roomChatServiceImpl.receiveMessage(roomId);
         return Result.success(message);
     }
-
-    // @RabbitListener(queues = "??")
-    // public void processMessage(String content) {
-    //     log.info("==> Received message: {}", content);
-    // }
 }
