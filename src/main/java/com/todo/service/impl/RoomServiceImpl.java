@@ -111,6 +111,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .select(UserRoom::getUserId)
                 .eq(UserRoom::getRoomId, roomId);
         List<Long> ids = userRoomMapper.selectObjs(wrapper);
+        if (ids.isEmpty()) return new ArrayList<>();
 
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);
@@ -335,6 +336,8 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .stream()
                 .map(o -> (String) o)
                 .toList();
+        if (ids.isEmpty()) return new ArrayList<>();
+
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>(User.class)
                 .in(User::getUserId, ids);
         return userMapper.selectList(wrapper)
