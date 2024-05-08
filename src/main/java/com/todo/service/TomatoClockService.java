@@ -3,7 +3,7 @@ package com.todo.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.todo.entity.TomatoClock;
 import com.todo.vo.Result;
-import jakarta.validation.constraints.NotNull;
+import com.todo.vo.TomatoClockVo;
 
 import java.util.List;
 
@@ -21,4 +21,10 @@ public interface TomatoClockService extends IService<TomatoClock> {
     Result<?> innerInterrupt(Long clockId, Integer innerInterrupt);
 
     Result<?> outerInterrupt(Long clockId, Integer outerInterrupt);
+
+    Result<?> stopTomatoClock(Long taskId, String stopReason);
+
+    Result<TomatoClockVo> findTomatoClock(Long clockId);
+
+    Result<List<TomatoClockVo>> findTomatoClockAll(Long taskId);
 }
