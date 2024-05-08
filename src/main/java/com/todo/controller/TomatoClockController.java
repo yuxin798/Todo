@@ -4,6 +4,7 @@ import com.todo.dto.TomatoClockDto;
 import com.todo.entity.TomatoClock;
 import com.todo.service.TomatoClockService;
 import com.todo.vo.Result;
+import com.todo.vo.TomatoClockVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -19,7 +20,7 @@ import java.util.List;
 @RequestMapping("/clock")
 public class TomatoClockController {
 
-    private TomatoClockService tomatoClockService;
+    private final TomatoClockService tomatoClockService;
 
     @Autowired
     public TomatoClockController(TomatoClockService tomatoClockService) {
@@ -48,6 +49,24 @@ public class TomatoClockController {
     @GetMapping("/outerInterrupt/{clockId}/{outerInterrupt}")
     public Result<?> outerInterrupt(@NotNull(message = "番茄钟Id不能为空") @PathVariable Long clockId, @NotNull(message = "外部中断数不能为空") @PathVariable Integer outerInterrupt) {
         return tomatoClockService.outerInterrupt(clockId, outerInterrupt);
+    }
+
+    @Operation(summary = "停止番茄钟")
+    @GetMapping("/stopTomatoClock/{taskId}/{stopReason}")
+    public Result<?> stopTomatoClock(@PathVariable Long taskId, @PathVariable String stopReason) {
+        return tomatoClockService.stopTomatoClock(taskId, stopReason);
+    }
+
+    @Operation(summary = "查询一个番茄钟")
+    @GetMapping("/findTomatoClock/{clockId}")
+    public Result<TomatoClockVo> findTomatoClock(@PathVariable Long clockId) {
+        return tomatoClockService.findTomatoClock(clockId);
+    }
+
+    @Operation(summary = "查询一个任务的所有番茄钟")
+    @GetMapping("/findTomatoClockAll/{taskId}")
+    public Result<List<TomatoClockVo>> findTomatoClockAll(@PathVariable Long taskId) {
+        return tomatoClockService.findTomatoClockAll(taskId);
     }
 
 }

@@ -11,6 +11,7 @@ import com.todo.entity.User;
 import com.todo.mapper.TaskMapper;
 import com.todo.mapper.TomatoClockMapper;
 import com.todo.service.TaskService;
+import com.todo.util.DefaultGeneratorUtils;
 import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.TaskVo;
@@ -40,7 +41,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         User user = UserContextUtil.getUser();
         String estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
 
-        Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate);
+        Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate, DefaultGeneratorUtils.getRandomDefaultBackground());
         baseMapper.insert(task);
 
         return findById(task.getTaskId());
