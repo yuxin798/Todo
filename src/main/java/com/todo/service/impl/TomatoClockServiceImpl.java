@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
 * @author 28080
@@ -34,35 +35,67 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     @Override
-    public Result<?> addTomatoClock(List<TomatoClock> tomatoClockList) {
+    public Result<List<TomatoClockVo>> addTomatoClock(Long taskId, Integer estimate) {
         // 查询是否存在该任务，以及该任务是否属于自己
-        TomatoClock first = tomatoClockList.stream().findFirst().get();
-        DataVerificationAndAuthenticationByTaskId(first.getTaskId());
-
-        // 为第一个番茄钟添加 初始值
-        first.setClockStatus(1);
-        first.setStartedAt(new Date());
+        DataVerificationAndAuthenticationByTaskId(taskId);
 
         // 获取当前任务已经完成的番茄钟数量
-        Long taskId = first.getTaskId();
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getTaskId, taskId);
         int count = (int) count(queryWrapper);
 
-        // 存储番茄钟
-        tomatoClockList
-                .stream()
-                .peek(tomatoClock -> tomatoClock.setSequence(tomatoClock.getSequence() + count))
-                .forEach(this::save);
-        return Result.success("添加成功");
+        IntStream.rangeClosed(1, estimate).forEach(i -> {
+            TomatoClock tomatoClock = new TomatoClock(taskId, i + count);
+            if (i == 1) {
+                // 为第一个番茄钟添加 初始值
+                tomatoClock.setStartedAt(new Date());
+                tomatoClock.setClockStatus(1);
+            }
+            this.save(tomatoClock);
+        });
+
+        //返回新增的番茄钟列表
+        return Result.success(
+                this.list(queryWrapper.last(" limit " + count  + "," + estimate))
+                        .stream()
+                        .map(TomatoClockVo::new)
+                        .toList()
+        );
+    }
+
+    @Override
+    public Result<?> startTomatoClock(Long clockId) {
+        TomatoClock tomatoClock = DataVerificationAndAuthenticationByClockId(clockId);
+        Integer clockStatus = tomatoClock.getClockStatus();
+
+        if (clockStatus == 0){
+            return Result.error("该番茄钟已完成");
+        }else if (clockStatus == 1){
+            return Result.error("该番茄钟已开始");
+        }else if (clockStatus == 3){
+            return Result.error("该番茄钟已停止");
+        }
+
+        LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
+                .set(TomatoClock::getClockStatus, 1)
+                .set(TomatoClock::getCompletedAt, new Date())
+                .eq(TomatoClock::getClockId, clockId)
+                .eq(TomatoClock::getClockStatus, 2);
+        this.update(updateWrapper);
+        return Result.success("修改成功");
     }
 
     @Override
     public Result<?> completeTomatoClock(Long clockId) {
         TomatoClock tomatoClock = DataVerificationAndAuthenticationByClockId(clockId);
+        Integer clockStatus = tomatoClock.getClockStatus();
 
-        if (tomatoClock.getClockStatus() == 0){
+        if (clockStatus == 0){
             return Result.error("该番茄钟已完成");
+        }else if (clockStatus == 2){
+            return Result.error("该番茄钟未开始");
+        }else if (clockStatus == 3){
+            return Result.error("该番茄钟已停止");
         }
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
@@ -70,10 +103,8 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getClockId, clockId)
                 .eq(TomatoClock::getClockStatus, 1);
-        if (update(updateWrapper)) {
-            return Result.success("修改成功");
-        }
-        return Result.error("网络异常，请稍后重试");
+        update(updateWrapper);
+        return Result.success("修改成功");
     }
 
     @Override
@@ -83,10 +114,8 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getInnerInterrupt, 1 + innerInterrupt)
                 .eq(TomatoClock::getClockId, clockId);
-        if (update(updateWrapper)) {
-            return Result.success("修改成功");
-        }
-        return Result.error("网络异常，请稍后重试");
+        update(updateWrapper);
+        return Result.success("修改成功");
     }
 
     @Override
@@ -96,10 +125,8 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getOuterInterrupt, 1 + outerInterrupt)
                 .eq(TomatoClock::getClockId, clockId);
-        if (update(updateWrapper)) {
-            return Result.success("修改成功");
-        }
-        return Result.error("网络异常，请稍后重试");
+        update(updateWrapper);
+        return Result.success("修改成功");
     }
 
     @Override
@@ -115,10 +142,8 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                         .or()
                         .eq(TomatoClock::getClockStatus, 2));
 
-        if (update(updateWrapper)) {
-            return Result.success("修改成功");
-        }
-        return Result.error("网络异常，请稍后重试");
+        this.update(updateWrapper);
+        return Result.success("修改成功");
     }
 
     @Override
@@ -138,6 +163,15 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                         .map(TomatoClockVo::new)
                         .toList()
         );
+    }
+
+    @Override
+    public Result<?> deleteTomatoClock(Long taskId) {
+        DataVerificationAndAuthenticationByTaskId(taskId);
+
+        this.remove(new LambdaQueryWrapper<TomatoClock>()
+                .eq(TomatoClock::getTaskId, taskId));
+        return Result.success("删除成功");
     }
 
     //根据番茄钟Id进行数据校验及身份认证

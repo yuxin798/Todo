@@ -28,31 +28,37 @@ public class TomatoClockController {
     }
 
     @Operation(summary = "添加番茄钟")
-    @PostMapping("/addTomatoClock")
-    public Result<?> addTomatoClock(@NotNull(message = "番茄钟不能为空") @RequestBody List<TomatoClock> tomatoClockList) {
-        return tomatoClockService.addTomatoClock(tomatoClockList);
+    @PostMapping("/addTomatoClock/{taskId}/{estimate}")
+    public Result<List<TomatoClockVo>> addTomatoClock(@PathVariable Long taskId, @PathVariable Integer estimate) {
+        return tomatoClockService.addTomatoClock(taskId, estimate);
+    }
+
+    @Operation(summary = "开始执行一个番茄钟")
+    @PutMapping("/startTomatoClock/{clockId}")
+    public Result<?> startTomatoClock(@PathVariable Long clockId) {
+        return tomatoClockService.startTomatoClock(clockId);
     }
 
     @Operation(summary = "完成一个番茄钟")
-    @GetMapping("/completeTomatoClock")
-    public Result<?> completeTomatoClock(@NotNull(message = "番茄钟ID不能为空") Long clockId) {
+    @PutMapping("/completeTomatoClock/{clockId}")
+    public Result<?> completeTomatoClock(@PathVariable Long clockId) {
         return tomatoClockService.completeTomatoClock(clockId);
     }
 
     @Operation(summary = "内部中断")
-    @GetMapping("/innerInterrupt/{clockId}/{innerInterrupt}")
-    public Result<?> innerInterrupt(@NotNull(message = "番茄钟Id不能为空") @PathVariable Long clockId, @NotNull(message = "内部中断数不能为空") @PathVariable Integer innerInterrupt) {
+    @PutMapping("/innerInterrupt/{clockId}/{innerInterrupt}")
+    public Result<?> innerInterrupt(@PathVariable Long clockId, @PathVariable Integer innerInterrupt) {
         return tomatoClockService.innerInterrupt(clockId, innerInterrupt);
     }
 
     @Operation(summary = "外部中断")
-    @GetMapping("/outerInterrupt/{clockId}/{outerInterrupt}")
-    public Result<?> outerInterrupt(@NotNull(message = "番茄钟Id不能为空") @PathVariable Long clockId, @NotNull(message = "外部中断数不能为空") @PathVariable Integer outerInterrupt) {
+    @PutMapping("/outerInterrupt/{clockId}/{outerInterrupt}")
+    public Result<?> outerInterrupt(@PathVariable Long clockId, @PathVariable Integer outerInterrupt) {
         return tomatoClockService.outerInterrupt(clockId, outerInterrupt);
     }
 
     @Operation(summary = "停止番茄钟")
-    @GetMapping("/stopTomatoClock/{taskId}/{stopReason}")
+    @DeleteMapping("/stopTomatoClock/{taskId}/{stopReason}")
     public Result<?> stopTomatoClock(@PathVariable Long taskId, @PathVariable String stopReason) {
         return tomatoClockService.stopTomatoClock(taskId, stopReason);
     }
@@ -67,6 +73,12 @@ public class TomatoClockController {
     @GetMapping("/findTomatoClockAll/{taskId}")
     public Result<List<TomatoClockVo>> findTomatoClockAll(@PathVariable Long taskId) {
         return tomatoClockService.findTomatoClockAll(taskId);
+    }
+
+    @Operation(summary = "删除番茄钟")
+    @PutMapping("/deleteTomatoClock/{taskId}")
+    public Result<?> deleteTomatoClock(@PathVariable Long taskId) {
+        return tomatoClockService.deleteTomatoClock(taskId);
     }
 
 }
