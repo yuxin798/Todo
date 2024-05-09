@@ -58,8 +58,8 @@ public class TomatoClockController {
     }
 
     @Operation(summary = "停止番茄钟")
-    @DeleteMapping("/stopTomatoClock/{taskId}/{stopReason}")
-    public Result<?> stopTomatoClock(@PathVariable Long taskId, @PathVariable String stopReason) {
+    @PutMapping("/stopTomatoClock/{taskId}")
+    public Result<?> stopTomatoClock(@PathVariable Long taskId, @RequestParam String stopReason) {
         return tomatoClockService.stopTomatoClock(taskId, stopReason);
     }
 
@@ -76,7 +76,7 @@ public class TomatoClockController {
     }
 
     @Operation(summary = "删除番茄钟")
-    @PutMapping("/deleteTomatoClock/{taskId}")
+    @DeleteMapping("/deleteTomatoClock/{taskId}")
     public Result<?> deleteTomatoClock(@PathVariable Long taskId) {
         return tomatoClockService.deleteTomatoClock(taskId);
     }

@@ -135,7 +135,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getClockStatus, 3)
-                .set(TomatoClock::getStopReason, stopReason)
+                .set(stopReason != null, TomatoClock::getStopReason, stopReason)
                 .eq(TomatoClock::getTaskId, taskId)
                 .and(wrapper -> wrapper
                         .eq(TomatoClock::getClockStatus, 1)
