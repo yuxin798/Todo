@@ -28,8 +28,6 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
 
     @Override
     public void sendMessage(Message message, MessageType type) {
-        message.setMessageId(null);
-        message.setToRoomId(null);
         switch (type) {
             case TO_USER -> userChatService.sendMessage(message);
             case TO_ROOM -> roomChatService.sendMessage(message);
@@ -63,6 +61,15 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
                 .and(type == MessageType.TO_ROOM, w -> w
                         .eq(Message::getToRoomId, otherId));
         return baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+    }
+
+    public boolean save(Message entity, MessageType type) {
+        entity.setMessageId(null);
+        switch (type) {
+            case TO_USER -> entity.setToRoomId(null);
+            case TO_ROOM -> entity.setToUserId(null);
+        }
+        return super.save(entity);
     }
 
     public enum MessageType {

@@ -7,7 +7,7 @@ import com.todo.entity.Message;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.Decoder;
 
-public class JsonDecoder implements Decoder.Text<Message> {
+public class JsonMessageDecoder implements Decoder.Text<Message> {
     @Override
     public Message decode(String s) throws DecodeException {
         try {
