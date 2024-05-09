@@ -27,10 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
         decoders = JsonDecoder.class
 )
 public class RoomChatWebSocketController {
-
-    // 在WebSocket也是这样注入，因 SpringBoot+WebSocket 对每个客户端连接都会创建一个 WebSocketServer
-    // （@ServerEndpoint 注解对应的）对象，Bean 注入操作会被直接略过，因而手动注入一个全局变量
-
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
     private static RoomService roomService;
@@ -73,9 +69,11 @@ public class RoomChatWebSocketController {
      */
     public static void sendMessage(Session session, Message message) {
         try {
-            session.getBasicRemote().sendText(String.format("%s (From Server,Session ID=%s)", message, session.getId()));
+            session.getBasicRemote().sendObject(message);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (EncodeException e) {
+            throw new RuntimeException(e);
         }
     }
 
