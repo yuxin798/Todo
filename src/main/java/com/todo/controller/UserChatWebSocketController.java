@@ -2,8 +2,8 @@ package com.todo.controller;
 
 import com.todo.entity.Message;
 import com.todo.entity.User;
-import com.todo.service.RoomService;
 import com.todo.service.impl.ChatServiceImplDelegator;
+import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 import com.todo.util.JwtUtil;
 import com.todo.util.websocket.JsonDecoder;
 import com.todo.util.websocket.JsonEncoder;
@@ -19,25 +19,21 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.todo.service.impl.ChatServiceImplDelegator.MessageType;
-
 @Component
 @Slf4j
 @ServerEndpoint(
-        value = "/roomchat/{roomId}",
+        value = "/userchat/{fromUserId}/{toUserId}",
         encoders = JsonEncoder.class,
         decoders = JsonDecoder.class
 )
-public class RoomChatWebSocketController {
+public class UserChatWebSocketController {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
-    private static RoomService roomService;
     private static ChatServiceImplDelegator chatServiceDelegator;
 
     @Autowired
-    public void roomChatWebSocketController(RoomService roomService, ChatServiceImplDelegator chatService) {
-        RoomChatWebSocketController.roomService = roomService;
-        RoomChatWebSocketController.chatServiceDelegator = chatService;
+    public void roomChatWebSocketController(ChatServiceImplDelegator chatServiceDelegator) {
+        UserChatWebSocketController.chatServiceDelegator = chatServiceDelegator;
     }
 
     @OnOpen
@@ -55,12 +51,12 @@ public class RoomChatWebSocketController {
     }
 
     @OnMessage
-    public void onMessage(Session session, Message message) {
-        log.info("==> 收到客户端消息: {}", message);
+    public void onMessage(Session fromSession, Message message) {
+        log.info("收到客户端消息: {}", message);
         // 持久化
         chatServiceDelegator.save(message);
-        // 广播
-        broadCastMessage(session, message);
+        // 发送
+        sendMessage(fromSession, sessionMap.get(message.getToUserId()), message);
     }
 
     @OnError
@@ -69,37 +65,22 @@ public class RoomChatWebSocketController {
         error.printStackTrace();
     }
 
-    /**
-     * 发送消息 实践表明 每次浏览器刷新 session会发生变化
-     */
-    public static void sendMessage(Session session, Message message) {
+    public void sendMessage(Session fromSession, Session toSession, Message message) {
+        if (toSession == null) {
+            // by rabbitmq
+            String token = fromSession.getRequestParameterMap().get("token").get(0);
+            User u = JwtUtil.getUserByToken(token);
+            SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
+            chatServiceDelegator.sendMessage(message, MessageType.TO_USER);
+            return;
+        }
         try {
-            session.getBasicRemote().sendObject(message);
+            // by websocket
+            fromSession.getBasicRemote().sendObject(message);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (EncodeException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * 群发消息
-     */
-    public void broadCastMessage(Session session, Message message) {
-        String roomId = session.getRequestParameterMap().get("roomId").get(0);
-
-        String token = session.getRequestParameterMap().get("token").get(0);
-        User u = JwtUtil.getUserByToken(token);
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
-
-        roomService.listUsers(Long.valueOf(roomId)).forEach(user -> {
-            Session s = sessionMap.get(user.getUserId());
-            if (s != null) {
-                sendMessage(s, message);
-            } else {
-                message.setToUserId(user.getUserId());
-                chatServiceDelegator.sendMessage(message, MessageType.TO_ROOM);
-            }
-        });
     }
 }

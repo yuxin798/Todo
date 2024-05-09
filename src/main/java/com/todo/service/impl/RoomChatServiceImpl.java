@@ -1,11 +1,13 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
 import com.todo.entity.UserRoom;
+import com.todo.mapper.ChatMapper;
 import com.todo.mapper.UserRoomMapper;
-import com.todo.service.RoomChatService;
+import com.todo.service.ChatService;
 import com.todo.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -19,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class RoomChatServiceImpl implements RoomChatService {
+public class RoomChatServiceImpl {
     private final AmqpAdmin amqpAdmin;
     private final AmqpTemplate amqpTemplate;
     private final RoomServiceImpl roomServiceImpl;
@@ -34,7 +36,6 @@ public class RoomChatServiceImpl implements RoomChatService {
         this.userRoomMapper = userRoomMapper;
     }
 
-    @Override
     public void sendMessage(Message message) {
         Long userId = UserContextUtil.getUser().getUserId();
         Long roomId = message.getToRoomId();
@@ -87,7 +88,7 @@ public class RoomChatServiceImpl implements RoomChatService {
         log.info("==> send message success. roomId: {}, message: {}", roomId, message);
     }
 
-    @Override
+
     public List<Message> receiveMessage(Long roomId) {
         Long userId = UserContextUtil.getUser().getUserId();
 

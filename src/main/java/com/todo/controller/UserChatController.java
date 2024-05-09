@@ -8,45 +8,43 @@ import com.todo.vo.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@Tag(name = "自习室聊天API")
+@Tag(name = "用户聊天API")
 @RestController
-@RequestMapping("/chat/room")
-public class RoomChatController {
+@RequestMapping("/chat/user")
+public class UserChatController {
     private final ChatServiceImplDelegator chatServiceDelegator;
 
-    public RoomChatController(ChatServiceImplDelegator chatServiceDelegator) {
+    public UserChatController(ChatServiceImplDelegator chatServiceDelegator) {
         this.chatServiceDelegator = chatServiceDelegator;
     }
 
+
     @Operation(summary = "接收消息")
     @GetMapping("/receive")
-    public Result<List<Message>> receiveMessage(Long roomId) {
-        List<Message> message = chatServiceDelegator.receiveMessage(roomId, MessageType.TO_ROOM);
+    public Result<?> receiveMessage(Long fromUserId) {
+        List<Message> message = chatServiceDelegator.receiveMessage(fromUserId, MessageType.TO_USER);
         return Result.success(message);
     }
 
     @Operation(summary = "分页查询消息")
-    @GetMapping("/{roomId}/{pageNum}/{pageSize}")
+    @GetMapping("/{userId}/{pageNum}/{pageSize}")
     public Result<Page<Message>> findMessagePage(
             @PathVariable Integer pageNum,
             @PathVariable Integer pageSize,
-            @PathVariable Long roomId,
+            @PathVariable Long userId,
             Long beforeDateTime) {
         Page<Message> page = chatServiceDelegator.findMessagePage(
-                roomId,
+                userId,
                 new Date(beforeDateTime),
                 pageNum,
                 pageSize,
-                MessageType.TO_ROOM
+                MessageType.TO_USER
         );
         return Result.success(page);
     }

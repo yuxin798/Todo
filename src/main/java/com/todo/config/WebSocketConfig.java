@@ -1,9 +1,5 @@
 package com.todo.config;
 
-import com.todo.controller.RoomChatWebSocketController;
-import com.todo.service.RoomChatService;
-import com.todo.service.RoomService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
