@@ -14,12 +14,18 @@ import com.todo.service.TaskService;
 import com.todo.util.DefaultGeneratorUtils;
 import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
+import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
 * @author 28080
@@ -149,6 +155,65 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                     taskVo.setTomatoClocks(tomatoClocks);
                 })
                 .toList();
+    }
+
+    @Override
+    public Result<?> complete(Long taskId) {
+        Task task = this.getById(taskId);
+        if (task == null) {
+            throw new RuntimeException("不存在该任务");
+        }
+        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())) {
+            throw new RuntimeException("没有权限");
+        }
+
+        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getTaskId, taskId);
+        List<TomatoClock> tomatoClockList = tomatoClockMapper.selectList(queryWrapper);
+
+        if (CollectionUtils.isEmpty(tomatoClockList)) {
+            throw new RuntimeException("该任务不可能已完成");
+        }
+
+        Date startedAt = tomatoClockList.get(0).getStartedAt();
+        Date completedAt;
+
+        Optional<TomatoClock> reduce = tomatoClockList
+                .stream()
+                .filter(tomatoClock -> tomatoClock.getCompletedAt() != null && (tomatoClock.getClockStatus() == 0 || tomatoClock.getClockStatus() == 3))
+                .reduce((first, second) -> second);
+
+        if (reduce.isPresent()){
+            completedAt = reduce.get().getCompletedAt();
+        }else {
+            throw new RuntimeException("该任务不可能已完成");
+        }
+
+        AtomicInteger innerInterrupt = new AtomicInteger(0);
+        AtomicInteger outerInterrupt = new AtomicInteger(0);
+        AtomicInteger tomatoClockTimes = new AtomicInteger(0);
+        AtomicInteger stopTimes = new AtomicInteger(0);
+        tomatoClockList
+                .forEach(tomatoClock -> {
+                    if (tomatoClock.getClockStatus() == 0) {
+                        tomatoClockTimes.incrementAndGet();
+                    } else if (tomatoClock.getClockStatus() == 3) {
+                        stopTimes.incrementAndGet();
+                    }
+                    innerInterrupt.addAndGet(tomatoClock.getInnerInterrupt());
+                    outerInterrupt.addAndGet(tomatoClock.getOuterInterrupt());
+                });
+
+        this.update(new LambdaUpdateWrapper<>(Task.class)
+                .set(Task::getStartedAt, startedAt)
+                .set(Task::getCompletedAt, completedAt)
+                .set(Task::getInnerInterrupt, innerInterrupt.intValue())
+                .set(Task::getOuterInterrupt, outerInterrupt.intValue())
+                .set(Task::getTomatoClockTimes, tomatoClockTimes.intValue())
+                .set(Task::getStopTimes, stopTimes.intValue())
+                .set(Task::getTaskStatus, 2)
+                .eq(Task::getTaskId, taskId));
+        return Result.success("同步数据成功");
     }
 }
 

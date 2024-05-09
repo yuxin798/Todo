@@ -76,4 +76,10 @@ public class TaskController {
     public Result<List<TaskVo>> findAll() {
         return Result.success(taskService.findAll());
     }
+
+    @Operation(summary = "完成任务，同步番茄钟与任务数据")
+    @PutMapping("/complete/{taskId}")
+    public Result<?> complete(@PathVariable Long taskId) {
+        return taskService.complete(taskId);
+    }
 }

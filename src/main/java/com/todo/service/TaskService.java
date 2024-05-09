@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.todo.dto.TaskDto;
 import com.todo.entity.Task;
+import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 
 import java.util.List;
@@ -26,4 +27,6 @@ public interface TaskService extends IService<Task> {
     TaskVo findById(Long taskId);
 
     List<TaskVo> findAll();
+
+    Result<?> complete(Long taskId);
 }
