@@ -1,13 +1,17 @@
 package com.todo.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.entity.Message;
 import com.todo.mapper.ChatMapper;
 import com.todo.service.ChatService;
+import com.todo.util.UserContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +45,24 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
         }
 
         return Objects.requireNonNullElseGet(messages, ArrayList::new);
+    }
+
+    @Override
+    public Page<Message> findMessagePage(Long otherId, Date beforeDateTime, int pageNum, int pageSize, MessageType type) {
+        Long userId = UserContextUtil.getUser().getUserId();
+        LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>(Message.class)
+                .lt(Message::getSendTime, beforeDateTime)
+                // 用户间的消息
+                .and(type == MessageType.TO_USER, w -> w
+                        .eq(Message::getFromUserId, userId)
+                        .eq(Message::getToUserId, otherId)
+                    .or()
+                        .eq(Message::getFromUserId, otherId)
+                        .eq(Message::getToUserId, userId))
+                // 自习室间的消息
+                .and(type == MessageType.TO_ROOM, w -> w
+                        .eq(Message::getToRoomId, otherId));
+        return baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
     }
 
     public enum MessageType {

@@ -83,9 +83,4 @@ public class UserChatWebSocketController {
             throw new RuntimeException(e);
         }
     }
-
-    @Autowired
-    public void setChatServiceImpl(ChatServiceImplDelegator chatServiceImpl) {
-        this.chatServiceDelegator = chatServiceImpl;
-    }
 }
