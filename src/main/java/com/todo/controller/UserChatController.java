@@ -1,7 +1,8 @@
 package com.todo.controller;
 
 import com.todo.entity.Message;
-import com.todo.service.UserChatService;
+import com.todo.service.impl.ChatServiceImplDelegator;
+import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 import com.todo.vo.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,24 +16,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/chat/user")
 public class UserChatController {
-    private final UserChatService userChatService;
+    private final ChatServiceImplDelegator chatServiceDelegator;
 
-    public UserChatController(UserChatService userChatService) {
-        this.userChatService = userChatService;
+    public UserChatController(ChatServiceImplDelegator chatServiceDelegator) {
+        this.chatServiceDelegator = chatServiceDelegator;
     }
 
-    // // 用 websocket 发送消息
-    // @Operation(summary = "发送消息")
-    // @PostMapping("/send")
-    // public Result<?> sendMessage(@RequestBody Message message) {
-    //     userChatService.sendMessage(message);
-    //     return Result.success();
-    // }
 
     @Operation(summary = "接收消息")
     @GetMapping("/receive")
     public Result<?> receiveMessage(Long fromUserId) {
-        List<Message> message = userChatService.receiveMessage(fromUserId);
+        List<Message> message = chatServiceDelegator.receiveMessage(fromUserId, MessageType.TO_USER);
         return Result.success(message);
     }
 }

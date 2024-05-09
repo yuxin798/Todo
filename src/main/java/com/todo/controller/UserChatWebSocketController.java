@@ -2,7 +2,8 @@ package com.todo.controller;
 
 import com.todo.entity.Message;
 import com.todo.entity.User;
-import com.todo.service.UserChatService;
+import com.todo.service.impl.ChatServiceImplDelegator;
+import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 import com.todo.util.JwtUtil;
 import com.todo.util.websocket.JsonDecoder;
 import com.todo.util.websocket.JsonEncoder;
@@ -28,11 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserChatWebSocketController {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
-    private static UserChatService userChatService;
+    private static ChatServiceImplDelegator chatServiceDelegator;
 
     @Autowired
-    public void roomChatWebSocketController(UserChatService userChatService) {
-        UserChatWebSocketController.userChatService = userChatService;
+    public void roomChatWebSocketController(ChatServiceImplDelegator chatServiceDelegator) {
+        UserChatWebSocketController.chatServiceDelegator = chatServiceDelegator;
     }
 
     @OnOpen
@@ -51,7 +52,10 @@ public class UserChatWebSocketController {
 
     @OnMessage
     public void onMessage(Session fromSession, Message message) {
-        log.info("【websocket消息】收到客户端消息: {}", message);
+        log.info("收到客户端消息: {}", message);
+        // 持久化
+        chatServiceDelegator.save(message);
+        // 发送
         sendMessage(fromSession, sessionMap.get(message.getToUserId()), message);
     }
 
@@ -67,7 +71,7 @@ public class UserChatWebSocketController {
             String token = fromSession.getRequestParameterMap().get("token").get(0);
             User u = JwtUtil.getUserByToken(token);
             SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
-            userChatService.sendMessage(message);
+            chatServiceDelegator.sendMessage(message, MessageType.TO_USER);
             return;
         }
         try {
@@ -78,5 +82,10 @@ public class UserChatWebSocketController {
         } catch (EncodeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Autowired
+    public void setChatServiceImpl(ChatServiceImplDelegator chatServiceImpl) {
+        this.chatServiceDelegator = chatServiceImpl;
     }
 }

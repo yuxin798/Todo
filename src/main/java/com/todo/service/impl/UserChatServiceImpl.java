@@ -2,7 +2,6 @@ package com.todo.service.impl;
 
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
-import com.todo.service.UserChatService;
 import com.todo.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -14,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class UserChatServiceImpl implements UserChatService {
+public class UserChatServiceImpl {
     private final AmqpAdmin amqpAdmin;
     private final AmqpTemplate amqpTemplate;
 
@@ -23,7 +22,6 @@ public class UserChatServiceImpl implements UserChatService {
         this.amqpTemplate = amqpTemplate;
     }
 
-    @Override
     public void sendMessage(Message message) {
         Long fromUserId = UserContextUtil.getUser().getUserId();
         Long toUserId = message.getToUserId();
@@ -53,7 +51,6 @@ public class UserChatServiceImpl implements UserChatService {
         log.info("==> send message success. roomId: {}, message: {}", suffix, message);
     }
 
-    @Override
     public List<Message> receiveMessage(Long fromUserId) {
         Long userId = UserContextUtil.getUser().getUserId();
 

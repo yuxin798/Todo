@@ -1,7 +1,8 @@
 package com.todo.controller;
 
 import com.todo.entity.Message;
-import com.todo.service.impl.RoomChatServiceImpl;
+import com.todo.service.impl.ChatServiceImplDelegator;
+import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 import com.todo.vo.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,24 +18,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/chat/room")
 public class RoomChatController {
-    private final RoomChatServiceImpl roomChatServiceImpl;
+    private final ChatServiceImplDelegator chatServiceDelegator;
 
-    public RoomChatController(RoomChatServiceImpl roomChatServiceImpl) {
-        this.roomChatServiceImpl = roomChatServiceImpl;
+    public RoomChatController(ChatServiceImplDelegator chatServiceDelegator) {
+        this.chatServiceDelegator = chatServiceDelegator;
     }
-
-    // 用 websocket 发送消息
-    // @Operation(summary = "发送消息")
-    // @PostMapping("/send")
-    // public Result<?> sendMessage(@RequestBody Message message) {
-    //     roomChatServiceImpl.sendMessage(message);
-    //     return Result.success();
-    // }
 
     @Operation(summary = "接收消息")
     @GetMapping("/receive")
     public Result<?> receiveMessage(Long roomId) {
-        List<Message> message = roomChatServiceImpl.receiveMessage(roomId);
+        List<Message> message = chatServiceDelegator.receiveMessage(roomId, MessageType.TO_ROOM);
         return Result.success(message);
     }
 }

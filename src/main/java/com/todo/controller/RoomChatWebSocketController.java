@@ -2,8 +2,8 @@ package com.todo.controller;
 
 import com.todo.entity.Message;
 import com.todo.entity.User;
-import com.todo.service.RoomChatService;
 import com.todo.service.RoomService;
+import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.util.JwtUtil;
 import com.todo.util.websocket.JsonDecoder;
 import com.todo.util.websocket.JsonEncoder;
@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.todo.service.impl.ChatServiceImplDelegator.MessageType;
+
 @Component
 @Slf4j
 @ServerEndpoint(
@@ -30,12 +32,12 @@ public class RoomChatWebSocketController {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
     private static RoomService roomService;
-    private static RoomChatService roomChatService;
+    private static ChatServiceImplDelegator chatServiceDelegator;
 
     @Autowired
-    public void roomChatWebSocketController(RoomService roomService, RoomChatService roomChatService) {
+    public void roomChatWebSocketController(RoomService roomService, ChatServiceImplDelegator chatService) {
         RoomChatWebSocketController.roomService = roomService;
-        RoomChatWebSocketController.roomChatService = roomChatService;
+        RoomChatWebSocketController.chatServiceDelegator = chatService;
     }
 
     @OnOpen
@@ -54,7 +56,10 @@ public class RoomChatWebSocketController {
 
     @OnMessage
     public void onMessage(Session session, Message message) {
-        log.info("【websocket消息】收到客户端消息: {}", message);
+        log.info("==> 收到客户端消息: {}", message);
+        // 持久化
+        chatServiceDelegator.save(message);
+        // 广播
         broadCastMessage(session, message);
     }
 
@@ -93,27 +98,8 @@ public class RoomChatWebSocketController {
                 sendMessage(s, message);
             } else {
                 message.setToUserId(user.getUserId());
-                roomChatService.sendMessage(message);
+                chatServiceDelegator.sendMessage(message, MessageType.TO_ROOM);
             }
         });
     }
-
-    // /**
-    //  * 指定Session发送消息
-    //  *
-    //  * @param sessionId
-    //  * @param message
-    //  * @throws IOException
-    //  */
-    // public static void SendMessage(String message, String sessionId) throws IOException {
-    //     Session session = null;
-    //     for (Session s : SessionSet) {
-    //         if (s.getId().equals(sessionId)) {
-    //             session = s;
-    //             break;
-    //         }
-    //     }
-    //     if (session != null)
-    //         SendMessage(session, message);
-    // }
 }
