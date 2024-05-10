@@ -46,15 +46,15 @@ public class TomatoClockController {
     }
 
     @Operation(summary = "内部中断")
-    @PutMapping("/innerInterrupt/{clockId}/{innerInterrupt}")
-    public Result<?> innerInterrupt(@PathVariable Long clockId, @PathVariable Integer innerInterrupt) {
-        return tomatoClockService.innerInterrupt(clockId, innerInterrupt);
+    @PutMapping("/innerInterrupt/{clockId}")
+    public Result<?> innerInterrupt(@PathVariable Long clockId) {
+        return tomatoClockService.innerInterrupt(clockId);
     }
 
     @Operation(summary = "外部中断")
-    @PutMapping("/outerInterrupt/{clockId}/{outerInterrupt}")
-    public Result<?> outerInterrupt(@PathVariable Long clockId, @PathVariable Integer outerInterrupt) {
-        return tomatoClockService.outerInterrupt(clockId, outerInterrupt);
+    @PutMapping("/outerInterrupt/{clockId}")
+    public Result<?> outerInterrupt(@PathVariable Long clockId) {
+        return tomatoClockService.outerInterrupt(clockId);
     }
 
     @Operation(summary = "停止番茄钟")

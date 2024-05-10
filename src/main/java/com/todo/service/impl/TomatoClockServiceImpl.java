@@ -37,7 +37,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<List<TomatoClockVo>> addTomatoClock(Long taskId, Integer estimate) {
         // 查询是否存在该任务，以及该任务是否属于自己
-        DataVerificationAndAuthenticationByTaskId(taskId);
+        dataVerificationAndAuthenticationByTaskId(taskId);
 
         // 获取当前任务已经完成的番茄钟数量
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
@@ -65,7 +65,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
     @Override
     public Result<?> startTomatoClock(Long clockId) {
-        TomatoClock tomatoClock = DataVerificationAndAuthenticationByClockId(clockId);
+        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
         Integer clockStatus = tomatoClock.getClockStatus();
 
         if (clockStatus == 0){
@@ -87,7 +87,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
     @Override
     public Result<?> completeTomatoClock(Long clockId) {
-        TomatoClock tomatoClock = DataVerificationAndAuthenticationByClockId(clockId);
+        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
         Integer clockStatus = tomatoClock.getClockStatus();
 
         if (clockStatus == 0){
@@ -109,22 +109,22 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     @Override
-    public Result<?> innerInterrupt(Long clockId, Integer innerInterrupt) {
-        DataVerificationAndAuthenticationByClockId(clockId);
+    public Result<?> innerInterrupt(Long clockId) {
+        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getInnerInterrupt, 1 + innerInterrupt)
+                .set(TomatoClock::getInnerInterrupt, 1 + tomatoClock.getInnerInterrupt())
                 .eq(TomatoClock::getClockId, clockId);
         update(updateWrapper);
         return Result.success("修改成功");
     }
 
     @Override
-    public Result<?> outerInterrupt(Long clockId, Integer outerInterrupt) {
-        DataVerificationAndAuthenticationByClockId(clockId);
+    public Result<?> outerInterrupt(Long clockId) {
+        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getOuterInterrupt, 1 + outerInterrupt)
+                .set(TomatoClock::getOuterInterrupt, 1 + tomatoClock.getOuterInterrupt())
                 .eq(TomatoClock::getClockId, clockId);
         update(updateWrapper);
         return Result.success("修改成功");
@@ -132,7 +132,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
     @Override
     public Result<?> stopTomatoClock(Long taskId, String stopReason) {
-        DataVerificationAndAuthenticationByTaskId(taskId);
+        dataVerificationAndAuthenticationByTaskId(taskId);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getClockStatus, 3)
@@ -150,13 +150,13 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
     @Override
     public Result<TomatoClockVo> findTomatoClock(Long clockId) {
-        TomatoClock tomatoClock = DataVerificationAndAuthenticationByClockId(clockId);
+        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
         return Result.success(new TomatoClockVo(tomatoClock));
     }
 
     @Override
     public Result<List<TomatoClockVo>> findTomatoClockAll(Long taskId) {
-        DataVerificationAndAuthenticationByTaskId(taskId);
+        dataVerificationAndAuthenticationByTaskId(taskId);
         return Result.success(
                 this.list(new LambdaQueryWrapper<TomatoClock>()
                         .eq(TomatoClock::getTaskId, taskId)
@@ -169,7 +169,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
 
     @Override
     public Result<?> deleteTomatoClock(Long taskId) {
-        DataVerificationAndAuthenticationByTaskId(taskId);
+        dataVerificationAndAuthenticationByTaskId(taskId);
 
         this.remove(new LambdaQueryWrapper<TomatoClock>()
                 .eq(TomatoClock::getTaskId, taskId));
@@ -177,7 +177,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     //根据番茄钟Id进行数据校验及身份认证
-    private TomatoClock DataVerificationAndAuthenticationByClockId(Long clockId){
+    private TomatoClock dataVerificationAndAuthenticationByClockId(Long clockId){
         TomatoClock tomatoClock = this.getById(clockId);
         if (tomatoClock == null){
             throw new RuntimeException("不存在该番茄钟");
@@ -193,7 +193,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     //根据任务Id进行数据校验及身份认证
-    private void DataVerificationAndAuthenticationByTaskId(Long taskId){
+    private void dataVerificationAndAuthenticationByTaskId(Long taskId){
         Task task = taskMapper.selectById(taskId);
         if (task == null){
             throw new RuntimeException("不存在该任务");

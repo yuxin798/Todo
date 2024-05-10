@@ -34,7 +34,7 @@ public interface RoomService extends IService<Room> {
 
     void updateRoom(RoomDto roomDto);
 
-    Page<Room> findRooms(RoomDto roomDto, int pageNum, int pageSize);
+    Page<RoomVo> findRooms(RoomDto roomDto, int pageNum, int pageSize);
 
     void requestJoin(Long roomId);
 

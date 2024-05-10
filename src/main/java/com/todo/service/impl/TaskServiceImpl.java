@@ -213,7 +213,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(Task::getStopTimes, stopTimes.intValue())
                 .set(Task::getTaskStatus, 2)
                 .eq(Task::getTaskId, taskId));
-        return Result.success("同步数据成功");
+        return Result.success();
     }
 }
 

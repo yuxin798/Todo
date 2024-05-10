@@ -65,7 +65,7 @@ public class RoomController {
      */
     @Operation(summary = "接受邀请")
     @PostMapping("/acceptInvitation")
-    public Result<String> acceptInvitation(@NotBlank(message = "邀请码不能为空") String invitationCode) {
+    public Result<?> acceptInvitation(@NotBlank(message = "邀请码不能为空") String invitationCode) {
         roomService.acceptInvitation(invitationCode);
         return Result.success();
     }
@@ -89,7 +89,7 @@ public class RoomController {
      */
     @Operation(summary = "查询用户加入的所有自习室")
     @GetMapping("/list")
-    public Result<List<RoomVo>> listUsers() {
+    public Result<List<RoomVo>> listRooms() {
         List<RoomVo> rooms = roomService.listRooms();
         return Result.success(rooms);
     }
@@ -149,14 +149,14 @@ public class RoomController {
      */
     @Operation(summary = "查询自习室")
     @GetMapping("/")
-    public Result<Page<Room>> findRooms(
+    public Result<Page<RoomVo>> findRooms(
             @Validated(RoomDto.FindRoom.class) RoomDto roomDto,
             @RequestParam(required = false, defaultValue = "0") int pageNum,
             @RequestParam(required = false, defaultValue = "20") int pageSize, Errors errors) {
         if (errors.hasErrors())
             throw new RuntimeException(errors.getErrorCount() + errors.getAllErrors().get(0).getDefaultMessage());
 
-        Page<Room> page = roomService.findRooms(roomDto, pageNum, pageSize);
+        Page<RoomVo> page = roomService.findRooms(roomDto, pageNum, pageSize);
         return Result.success(page);
     }
 

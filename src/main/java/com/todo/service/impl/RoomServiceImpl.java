@@ -14,6 +14,7 @@ import com.todo.mapper.RoomMapper;
 import com.todo.mapper.UserMapper;
 import com.todo.mapper.UserRoomMapper;
 import com.todo.service.RoomService;
+import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.RoomVo;
 import com.todo.vo.UserVo;
@@ -240,11 +241,19 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     }
 
     @Override
-    public Page<Room> findRooms(RoomDto roomDto, int pageNum, int pageSize) {
+    public Page<RoomVo> findRooms(RoomDto roomDto, int pageNum, int pageSize) {
         LambdaQueryWrapper<Room> wrapper = new LambdaQueryWrapper<>(Room.class)
                 .like(Room::getRoomName, roomDto.getRoomName());
 
-        return baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        Page<Room> roomPage = baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+
+        List<RoomVo> list = roomPage
+                .getRecords()
+                .stream()
+                .map(RoomVo::new)
+                .toList();
+
+        return PageUtil.of(roomPage, list);
     }
 
     @Override
