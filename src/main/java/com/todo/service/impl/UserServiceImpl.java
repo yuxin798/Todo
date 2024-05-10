@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.UserDto;
+import com.todo.entity.Task;
 import com.todo.entity.User;
 import com.todo.mapper.UserMapper;
 import com.todo.service.UserService;
@@ -198,6 +199,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return Result.error("用户已注销");
     }
 
+    @Override
+    public Result<UserVo> modifyUserInfo(UserDto userDto) {
+        Long userId = UserContextUtil.getUser().getUserId();
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>(User.class)
+                .set(StringUtils.hasText(userDto.getUserName()), User::getUserName, userDto.getUserName())
+                .set(StringUtils.hasText(userDto.getAvatar()), User::getAvatar, userDto.getAvatar())
+                .set(StringUtils.hasText(userDto.getSignature()), User::getSignature, userDto.getSignature())
+                .eq(User::getUserId, userId);
+        this.update(updateWrapper);
+        User user = this.getById(userId);
+        return Result.success(new UserVo(user));
+    }
+
+    @Override
     public Result<UserVo> getUserInfo() {
         Long userId = UserContextUtil.getUser().getUserId();
         User user = baseMapper.selectById(userId);

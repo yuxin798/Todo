@@ -26,6 +26,8 @@ public class UserDto {
     private String emailCodeKey;
     @NotBlank(message = "验证码不能为空", groups = {Register.class, ModifyPassword.class})
     private String emailCode;
+    private String avatar;
+    private String signature;
 
     public interface Login{
     }

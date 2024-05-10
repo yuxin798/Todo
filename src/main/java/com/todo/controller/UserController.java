@@ -111,6 +111,15 @@ public class UserController {
     }
 
     /*
+     * 修改用户信息
+     */
+    @Operation(summary = "修改用户信息")
+    @PutMapping("/modifyUserInfo")
+    public Result<UserVo> modifyUserInfo(@RequestBody UserDto userDto){
+        return userServiceImpl.modifyUserInfo(userDto);
+    }
+
+    /*
      * 获取用户信息
      */
     @Operation(summary = "获取用户信息")

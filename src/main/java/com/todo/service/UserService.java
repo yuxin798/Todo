@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.todo.dto.UserDto;
 import com.todo.entity.User;
 import com.todo.vo.Result;
+import com.todo.vo.UserVo;
 
 /**
 * @author 28080
@@ -24,6 +25,10 @@ public interface UserService extends IService<User> {
     Result<String> updateUserName(String userName);
 
     Result<String> modifyAvatar(String avatar);
+
+    Result<UserVo> modifyUserInfo(UserDto userDto);
+
+    Result<UserVo> getUserInfo();
 
     Result<String> logout();
 }
