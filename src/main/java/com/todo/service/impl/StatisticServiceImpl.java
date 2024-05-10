@@ -85,8 +85,8 @@ public class StatisticServiceImpl implements StatisticService {
 
         // 日均时长
         tomatoDays = dayTomato.size();
-        avgTomatoDuration = tomatoDuration.get() / tomatoDays;
-        avgTomatoTimes = tomatoTimes.get() / tomatoDays;
+        avgTomatoDuration = tomatoDays == 0 ? 0 : tomatoDuration.get() / tomatoDays;
+        avgTomatoTimes = tomatoDays == 0 ? 0 : tomatoTimes.get() / tomatoDays;
 
         map.put("tomatoDays", tomatoDays);
         map.put("avgTomatoTimes", avgTomatoTimes);
