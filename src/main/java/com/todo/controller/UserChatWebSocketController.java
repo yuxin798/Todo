@@ -1,12 +1,15 @@
 package com.todo.controller;
 
+import com.todo.dto.MessageDto;
 import com.todo.entity.Message;
 import com.todo.entity.User;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 import com.todo.util.JwtUtil;
-import com.todo.util.websocket.JsonDecoder;
-import com.todo.util.websocket.JsonEncoder;
+import com.todo.util.websocket.JsonMessageDecoder;
+import com.todo.util.websocket.JsonMessageDtoDecoder;
+import com.todo.util.websocket.JsonMessageDtoEncoder;
+import com.todo.util.websocket.JsonMessageEncoder;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @ServerEndpoint(
         value = "/userchat/{fromUserId}/{toUserId}",
-        encoders = JsonEncoder.class,
-        decoders = JsonDecoder.class
+        encoders = { JsonMessageDtoEncoder.class, JsonMessageEncoder.class },
+        decoders = { JsonMessageDtoDecoder.class, JsonMessageDecoder.class }
 )
 public class UserChatWebSocketController {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
@@ -51,10 +54,11 @@ public class UserChatWebSocketController {
     }
 
     @OnMessage
-    public void onMessage(Session fromSession, Message message) {
+    public void onMessage(Session fromSession, MessageDto messageDto) {
+        Message message = new Message(messageDto);
         log.info("收到客户端消息: {}", message);
         // 持久化
-        chatServiceDelegator.save(message);
+        chatServiceDelegator.save(message, MessageType.TO_USER);
         // 发送
         sendMessage(fromSession, sessionMap.get(message.getToUserId()), message);
     }
@@ -77,6 +81,7 @@ public class UserChatWebSocketController {
         try {
             // by websocket
             fromSession.getBasicRemote().sendObject(message);
+            toSession.getBasicRemote().sendObject(message);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (EncodeException e) {

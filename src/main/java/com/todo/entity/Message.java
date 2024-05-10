@@ -1,8 +1,8 @@
 package com.todo.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.todo.dto.MessageDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,4 +24,12 @@ public class Message {
     private Date createdAt;
     private Date updatedAt;
     private Integer deleted;
+
+    public Message(MessageDto messageDto) {
+        this.fromUserId = messageDto.getFromUserId();
+        this.toUserId = messageDto.getToUserId();
+        this.toRoomId = messageDto.getToRoomId();
+        this.content = messageDto.getContent();
+        this.setSendTime(new Date());
+    }
 }

@@ -1,12 +1,15 @@
 package com.todo.controller;
 
+import com.todo.dto.MessageDto;
 import com.todo.entity.Message;
 import com.todo.entity.User;
 import com.todo.service.RoomService;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.util.JwtUtil;
-import com.todo.util.websocket.JsonDecoder;
-import com.todo.util.websocket.JsonEncoder;
+import com.todo.util.websocket.JsonMessageDecoder;
+import com.todo.util.websocket.JsonMessageDtoDecoder;
+import com.todo.util.websocket.JsonMessageDtoEncoder;
+import com.todo.util.websocket.JsonMessageEncoder;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +28,8 @@ import static com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 @Slf4j
 @ServerEndpoint(
         value = "/roomchat/{roomId}",
-        encoders = JsonEncoder.class,
-        decoders = JsonDecoder.class
+        encoders = { JsonMessageDtoEncoder.class, JsonMessageEncoder.class },
+        decoders = { JsonMessageDtoDecoder.class, JsonMessageDecoder.class }
 )
 public class RoomChatWebSocketController {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
@@ -55,10 +58,11 @@ public class RoomChatWebSocketController {
     }
 
     @OnMessage
-    public void onMessage(Session session, Message message) {
+    public void onMessage(Session session, MessageDto messageDto) {
+        Message message = new Message(messageDto);
         log.info("==> 收到客户端消息: {}", message);
         // 持久化
-        chatServiceDelegator.save(message);
+        chatServiceDelegator.save(message, MessageType.TO_ROOM);
         // 广播
         broadCastMessage(session, message);
     }
