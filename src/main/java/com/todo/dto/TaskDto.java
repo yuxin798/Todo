@@ -25,6 +25,11 @@ public class TaskDto {
     @Size(min = 1, message = "预估番茄钟数不能为0", groups = {AddTask.class, UpdateTask.class})
     private List<Integer> estimate;
 
+    @Min(value = 1, message = "番茄钟时长最小为1", groups = {AddTask.class, UpdateTask.class})
+    private Integer clockDuration;
+
+    private String category;
+
     @Min(value = 1, message = "番茄钟数最小值为1", groups = UpdateTask.class)
     private Integer tomatoClockTimes;
     private List<TomatoClock> tomatoClocks;

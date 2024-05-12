@@ -50,6 +50,10 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                 // 为第一个番茄钟添加 初始值
                 tomatoClock.setStartedAt(new Date());
                 tomatoClock.setClockStatus(1);
+                taskMapper.update(new LambdaUpdateWrapper<>(Task.class)
+                        .set(Task::getStartedAt, new Date())
+                        .eq(Task::getTaskId, taskId)
+                );
             }
             this.save(tomatoClock);
         });

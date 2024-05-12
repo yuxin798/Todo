@@ -45,6 +45,18 @@ public class Task implements Serializable {
     private String estimate;
 
     /**
+     *
+     */
+    @TableField(value = "clock_duration")
+    private Integer clockDuration;
+
+    /**
+     *
+     */
+    @TableField(value = "category")
+    private String category;
+
+    /**
      * 
      */
     @TableField(value = "tomato_clock_times")
@@ -113,10 +125,11 @@ public class Task implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public Task(Long userId, String taskName, String estimate, String background) {
+    public Task(Long userId, String taskName, String estimate, Integer clockDuration, String background) {
         this.userId = userId;
         this.taskName = taskName;
         this.estimate = estimate;
+        this.clockDuration = clockDuration;
         this.background = background;
 
         this.setTomatoClockTimes(0);
@@ -142,6 +155,8 @@ public class Task implements Serializable {
             && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
             && (this.getTaskName() == null ? other.getTaskName() == null : this.getTaskName().equals(other.getTaskName()))
             && (this.getEstimate() == null ? other.getEstimate() == null : this.getEstimate().equals(other.getEstimate()))
+            && (this.getClockDuration() == null ? other.getClockDuration() == null : this.getClockDuration().equals(other.getClockDuration()))
+            && (this.getCategory() == null ? other.getCategory() == null : this.getCategory().equals(other.getCategory()))
             && (this.getTomatoClockTimes() == null ? other.getTomatoClockTimes() == null : this.getTomatoClockTimes().equals(other.getTomatoClockTimes()))
             && (this.getStopTimes() == null ? other.getStopTimes() == null : this.getStopTimes().equals(other.getStopTimes()))
             && (this.getTaskStatus() == null ? other.getTaskStatus() == null : this.getTaskStatus().equals(other.getTaskStatus()))
@@ -163,6 +178,8 @@ public class Task implements Serializable {
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
         result = prime * result + ((getTaskName() == null) ? 0 : getTaskName().hashCode());
         result = prime * result + ((getEstimate() == null) ? 0 : getEstimate().hashCode());
+        result = prime * result + ((getClockDuration() == null) ? 0 : getClockDuration().hashCode());
+        result = prime * result + ((getCategory() == null) ? 0 : getCategory().hashCode());
         result = prime * result + ((getTomatoClockTimes() == null) ? 0 : getTomatoClockTimes().hashCode());
         result = prime * result + ((getStopTimes() == null) ? 0 : getStopTimes().hashCode());
         result = prime * result + ((getTaskStatus() == null) ? 0 : getTaskStatus().hashCode());
@@ -187,6 +204,8 @@ public class Task implements Serializable {
         sb.append(", userId=").append(userId);
         sb.append(", taskName=").append(taskName);
         sb.append(", estimate=").append(estimate);
+        sb.append(", clockDuration=").append(clockDuration);
+        sb.append(", category=").append(category);
         sb.append(", tomatoClockTimes=").append(tomatoClockTimes);
         sb.append(", stopTimes=").append(stopTimes);
         sb.append(", taskStatus=").append(taskStatus);

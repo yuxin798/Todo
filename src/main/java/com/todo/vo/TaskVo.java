@@ -19,6 +19,8 @@ public class TaskVo {
 
     private String taskName;
     private List<Integer> estimate;
+    private Integer clockDuration;
+    private String category;
 
     private Integer tomatoClockTimes;
     private List<TomatoClock> tomatoClocks;
@@ -37,6 +39,8 @@ public class TaskVo {
         userId = task.getUserId();
         taskName = task.getTaskName();
         estimate = ListUtil.commaSeparateStringToList(task.getEstimate(), Integer::valueOf);
+        clockDuration = task.getClockDuration();
+        category = task.getCategory();
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
         taskStatus = task.getTaskStatus();
@@ -49,6 +53,6 @@ public class TaskVo {
 
     public void setTomatoClocks(List<TomatoClock> tomatoClocks) {
         this.tomatoClocks = tomatoClocks;
-        this.setTomatoClockTimes(tomatoClocks.size());
     }
+
 }

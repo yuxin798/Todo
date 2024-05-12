@@ -15,6 +15,11 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 
 @Tag(name = "任务API")
@@ -46,7 +51,7 @@ public class TaskController {
 
     @Operation(summary = "修改一项任务")
     @PutMapping("/")
-    public Result<TaskVo> updateTask(@Validated() @RequestBody TaskDto taskDto) {
+    public Result<TaskVo> updateTask(@Validated(TaskDto.UpdateTask.class) @RequestBody TaskDto taskDto) {
         TaskVo task = taskService.updateTask(taskDto);
         return Result.success(task);
     }
@@ -75,6 +80,18 @@ public class TaskController {
     @GetMapping("/all")
     public Result<List<TaskVo>> findAll() {
         return Result.success(taskService.findAll());
+    }
+
+    @Operation(summary = "查询一个类别的任务")
+    @GetMapping("/findByCategory/{category}")
+    public Result<List<TaskVo>> findByCategory(@PathVariable String category) {
+        return taskService.findByCategory(category);
+    }
+
+    @Operation(summary = "查询某一天的任务")
+    @GetMapping("/findByDay")
+    public Result<List<TaskVo>> findByDay(@RequestParam Long timestamp) {
+        return taskService.findByDay(timestamp);
     }
 
     @Operation(summary = "完成任务，同步番茄钟与任务数据")

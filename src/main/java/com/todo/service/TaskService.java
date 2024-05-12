@@ -7,6 +7,7 @@ import com.todo.entity.Task;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -29,4 +30,8 @@ public interface TaskService extends IService<Task> {
     List<TaskVo> findAll();
 
     Result<?> complete(Long taskId);
+
+    Result<List<TaskVo>> findByCategory(String category);
+
+    Result<List<TaskVo>> findByDay(Long timestamp);
 }
