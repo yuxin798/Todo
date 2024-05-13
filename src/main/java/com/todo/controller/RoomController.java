@@ -65,7 +65,9 @@ public class RoomController {
      */
     @Operation(summary = "接受邀请")
     @PostMapping("/acceptInvitation")
-    public Result<?> acceptInvitation(@NotBlank(message = "邀请码不能为空") String invitationCode) {
+    public Result<?> acceptInvitation(
+            @NotBlank(message = "邀请码不能为空")
+            @RequestParam String invitationCode) {
         roomService.acceptInvitation(invitationCode);
         return Result.success();
     }

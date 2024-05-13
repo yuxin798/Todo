@@ -79,7 +79,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
         if (!StringUtils.hasText(code)) {
             // 没有邀请码
-            code = "ToDo@" + RandomUtil.randomString(11);
+            do {
+                code = RandomUtil.randomString("0123456789", 6);
+            } while (code.equals(redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + code)));
             redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_CODE + code, roomId, 7, TimeUnit.DAYS);
             redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_ID + roomId, code, 7, TimeUnit.DAYS);
         }
