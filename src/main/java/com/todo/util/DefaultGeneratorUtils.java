@@ -10,10 +10,9 @@ public class DefaultGeneratorUtils {
     static final ArrayList<String> defaultBackgrounds;
     static {
         defaultAvatars = new ArrayList<>();
-        defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/th.png");
-        defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/1.jpeg");
-        defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/2.jpeg");
-        defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/favicon.png");
+        for (int i = 1; i <= 19; i++) {
+            defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/user_default_avatar/random_avator" + i + ".png");
+        }
     }
     static {
         defaultSignatures = new ArrayList<>();

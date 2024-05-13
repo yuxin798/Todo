@@ -79,6 +79,7 @@ todo:
       "[image/jpeg]": jpeg
       "[image/gif]": gif
       "[video/mp4]": mp4
+      "[image/*]": jpg
 
 springdoc:
   swagger-ui:

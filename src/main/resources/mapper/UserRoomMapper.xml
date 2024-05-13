@@ -12,9 +12,15 @@
             <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
             <result property="deleted" column="deleted" jdbcType="TINYINT"/>
     </resultMap>
+    <update id="updateDeleted">
+        update user_room
+        set deleted = 0
+        where user_id = ${userId} and room_id = ${roomId};
+    </update>
 
-    <sql id="Base_Column_List">
-        user_room_id,user_id,room_id,
-        created_at,updated_at,deleted
-    </sql>
+    <select id="selectBeforeInRoom" resultType="com.todo.entity.UserRoom">
+        select *
+        from user_room
+        where user_id = ${userId} and room_id = ${roomId};
+    </select>
 </mapper>

@@ -91,21 +91,25 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
     @Override
     public void acceptInvitation(String invitationCode) {
-        User user = UserContextUtil.getUser();
+        Long userId = UserContextUtil.getUser().getUserId();
         Long roomId = (Long) redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + invitationCode);
         if(roomId == null){
             throw new RuntimeException("邀请码不存在");
         }
 
-        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
-                .eq(UserRoom::getRoomId, roomId)
-                .eq(UserRoom::getUserId, user.getUserId());
-
-        if (userRoomMapper.selectOne(wrapper) != null) {
+        UserRoom userRoom = userRoomMapper.selectBeforeInRoom(roomId, userId);
+        //判断以前是否进入过该自习室 如果进入过 只需要进行简单的将 deleted 变为 0
+        if (userRoom != null && userRoom.getDeleted() == 0) {
             throw new RuntimeException("已加入自习室");
+        }else if (userRoom != null && userRoom.getDeleted() == 1){
+            userRoomMapper.updateDeleted(roomId, userId);
+            return;
         }
 
-        userRoomMapper.insert(new UserRoom(user.getUserId(), roomId));
+        userRoomMapper.insert(new UserRoom(userId, roomId));
+
+        // 用户已经通过邀请码加入自习室  判断 用户以前是否申请过  如果申请过 删除申请
+        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
     }
 
     @Override
@@ -311,14 +315,18 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("申请不存在");
         }
 
-        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
-                .eq(UserRoom::getUserId, userId)
-                .eq(UserRoom::getRoomId, roomId);
-        if (userRoomMapper.selectOne(wrapper) != null) {
-            throw new RuntimeException("用户已在自习室中");
+        UserRoom userRoom = userRoomMapper.selectBeforeInRoom(roomId, userId);
+        //判断以前是否进入过该自习室 如果进入过 只需要进行简单的将 deleted 变为 0
+        if (userRoom != null && userRoom.getDeleted() == 0) {
+            throw new RuntimeException("已加入自习室");
+        }else if (userRoom != null && userRoom.getDeleted() == 1){
+            userRoomMapper.updateDeleted(roomId, userId);
+            return;
         }
 
+        userRoomMapper.insert(new UserRoom(userId, roomId));
         redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
+
         Long size = redisTemplate.opsForList().size(RedisConstant.ROOM_REQUEST_JOIN + roomId);
         if (size != null && size == 0) {
             redisTemplate.delete(RedisConstant.ROOM_REQUEST_JOIN + roomId);

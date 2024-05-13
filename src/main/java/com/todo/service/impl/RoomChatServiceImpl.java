@@ -93,7 +93,7 @@ public class RoomChatServiceImpl {
         Long userId = UserContextUtil.getUser().getUserId();
 
         QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userId);
-        if (queueInfo == null) throw new RuntimeException("自习室不存在");
+        if (queueInfo == null) return new ArrayList<>();
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getUserId, userId)

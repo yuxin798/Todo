@@ -55,7 +55,7 @@ public class UserChatServiceImpl {
         Long userId = UserContextUtil.getUser().getUserId();
 
         QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_USER + fromUserId + ":" + userId);
-        if (queueInfo == null) throw new RuntimeException("聊天不存在");
+        if (queueInfo == null) return new ArrayList<>();
 
         ArrayList<Message> msgs = new ArrayList<>();
         Message message;

@@ -95,13 +95,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(StringUtils.hasText(taskDto.getTaskName()), Task::getTaskName, taskDto.getTaskName())
                 .set(StringUtils.hasText(estimate), Task::getEstimate, estimate)
                 .set(taskDto.getClockDuration() != null, Task::getClockDuration, taskDto.getClockDuration())
-                .set(taskDto.getTomatoClockTimes() != null, Task::getTomatoClockTimes, taskDto.getTomatoClockTimes())
-                .set(taskDto.getStopTimes() != null, Task::getStopTimes, taskDto.getStopTimes())
-                .set(taskDto.getTaskStatus() != null, Task::getTaskStatus, taskDto.getTaskStatus())
-                .set(taskDto.getInnerInterrupt() != null, Task::getInnerInterrupt, taskDto.getInnerInterrupt())
-                .set(taskDto.getOuterInterrupt() != null, Task::getOuterInterrupt, taskDto.getOuterInterrupt())
-                .set(taskDto.getStartedAt() != null, Task::getStartedAt, taskDto.getStartedAt())
-                .set(taskDto.getCompletedAt() != null, Task::getCompletedAt, taskDto.getCompletedAt())
+                .set(StringUtils.hasText(taskDto.getCategory()), Task::getCategory, taskDto.getCategory())
                 .eq(Task::getTaskId, taskDto.getTaskId());
 
         baseMapper.update(task, wrapper);
@@ -120,7 +114,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .eq(taskDto.getInnerInterrupt() != null, Task::getInnerInterrupt, taskDto.getInnerInterrupt())
                 .eq(taskDto.getOuterInterrupt() != null, Task::getOuterInterrupt, taskDto.getOuterInterrupt())
                 .gt(taskDto.getStartedAt() != null, Task::getStartedAt, taskDto.getStartedAt())
-                .lt(taskDto.getCompletedAt() != null, Task::getCompletedAt, taskDto.getCompletedAt());
+                .lt(taskDto.getCompletedAt() != null, Task::getCompletedAt, taskDto.getCompletedAt())
+                .eq(Task::getUserId, UserContextUtil.getUser().getUserId());
 
         Page<Task> taskPage = baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
         List<TaskVo> list = taskPage.getRecords()
