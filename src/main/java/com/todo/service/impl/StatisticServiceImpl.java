@@ -4,6 +4,7 @@ import com.todo.constant.RedisConstant;
 import com.todo.service.StatisticService;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.TaskVo;
+import lombok.Getter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,13 +12,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import static com.todo.service.impl.StatisticServiceImpl.Unit.*;
 
 @Service
 public class StatisticServiceImpl implements StatisticService {
@@ -56,7 +57,9 @@ public class StatisticServiceImpl implements StatisticService {
         // 某天专注次数
         // 某天专注时长
 
-        var dayTomatoTmp = tasks.stream()
+
+        // 每天的任务分组
+        HashMap<Long, List<TaskVo>> dayTomatoTmp = tasks.stream()
             .filter(t -> t.getTaskStatus() == 2)
             .peek(t -> {
                 tomatoDuration.addAndGet((long) t.getTomatoClockTimes() * t.getClockDuration());
@@ -66,25 +69,32 @@ public class StatisticServiceImpl implements StatisticService {
                     // 获取某一天的时间戳，并通过这个分组
                     t -> LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8")),
                     HashMap::new,
-                    Collectors.mapping(t -> {
+                    Collectors.toList())
+            );
+
+        HashMap<Long, Map<String, Long>> dayTomato = new HashMap<>();
+
+        // 每天的总专注
+        dayTomatoTmp.forEach((k, v) -> {
+            HashMap<String, Long> res = v.stream()
+                    .map(t -> {
                         HashMap<String, Long> m = new HashMap<>();
                         m.put("tomatoTimes", Long.valueOf(t.getTomatoClockTimes()));
                         m.put("tomatoDuration", (long) t.getTomatoClockTimes() * t.getClockDuration());
                         return m;
-                    }, Collectors.toList())
-            ));
-
-        HashMap<Long, Map<String, Long>> dayTomato = new HashMap<>();
-        dayTomatoTmp.forEach((k, v) -> {
-            HashMap<String, Long> res = v.stream().reduce(
-                    new HashMap<>(),
-                    (m1, m2) -> {
+                    })
+                    .reduce(new HashMap<>(), (m1, m2) -> {
                         m1.merge("tomatoTimes", m2.get("tomatoTimes"), Long::sum);
                         m1.merge("tomatoDuration", m2.get("tomatoDuration"), Long::sum);
                         return m1;
-            });
+                    });
             dayTomato.put(k, res);
         });
+
+        // 专注时长分布
+        map.put("durationByDay", getFocusDuration(dayTomatoTmp, DAY));
+        map.put("durationByWeek", getFocusDuration(dayTomatoTmp, WEEK));
+        map.put("durationByMonth", getFocusDuration(dayTomatoTmp, MONTH));
 
         // 日均时长
         tomatoDays = dayTomato.size();
@@ -99,7 +109,74 @@ public class StatisticServiceImpl implements StatisticService {
         map.put("dayTomato", dayTomato);
         map.put("cached", false);
 
-        redisTemplate.opsForValue().set(key, map, 5, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(key, map, 5, TimeUnit.SECONDS);
         return map;
+    }
+
+    @Getter
+    enum Unit {
+        DAY(1), WEEK(7), MONTH(30), YEAR(365);
+
+        private final Integer days;
+
+        Unit(Integer days) {
+            this.days = days;
+        }
+
+        public long getStartEpochSecond() {
+            switch (this) {
+                case DAY -> {
+                    return LocalDate.now(ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
+                }
+                case WEEK -> {
+                    Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+                    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    return calendar.getTime().toInstant().getEpochSecond();
+                }
+                case MONTH -> {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH),
+                            0, 0, 0);
+                    calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+                    return calendar.getTime().toInstant().getEpochSecond();
+                }
+                case YEAR -> {}
+            }
+            return 0;
+        }
+
+        public long getEndEpochSecond() {
+            return LocalDate.now(ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
+        }
+
+    }
+
+    private Map<String, Double> getFocusDuration(HashMap<Long, List<TaskVo>> dayTomatoTmp, Unit timeUnit) {
+        // exclusive
+        long start = timeUnit.getStartEpochSecond();
+
+        // inclusive
+        long end = timeUnit.getEndEpochSecond();
+
+        Map<String, Integer> tmp = new HashMap<>();
+        AtomicInteger sum = new AtomicInteger();
+        dayTomatoTmp.forEach((k, v) -> {
+            if (k >= start && k <= end) {
+                v.forEach(t -> {
+                    int duration = t.getClockDuration() * t.getTomatoClockTimes();
+                    tmp.merge(t.getTaskName(), duration, Integer::sum);
+                    sum.addAndGet(duration);
+                });
+            }
+        });
+
+        HashMap<String, Double> res = new HashMap<>();
+        tmp.forEach((k, v) -> res.put(k, 1.0 * v / sum.get()));
+        return res;
     }
 }
