@@ -58,6 +58,8 @@ logging:
   level:
     com.todo: debug
     web: trace
+  pattern:
+    dateformat: yyyy/MM/dd HH:mm:ss
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
