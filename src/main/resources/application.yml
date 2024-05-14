@@ -53,6 +53,9 @@ spring:
           initial-interval: "2s"
     stream:
       name: "my_stream"
+  jackson:
+    serialization:
+      write-dates-as-timestamps: true
 
 logging:
   level:

@@ -20,12 +20,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
 @ServerEndpoint(
-        value = "/userchat/{fromUserId}/{toUserId}",
+        value = "/userchat/{toUserId}",
         encoders = { JsonMessageDtoEncoder.class, JsonMessageEncoder.class },
         decoders = { JsonMessageDtoDecoder.class, JsonMessageDecoder.class }
 )
@@ -57,6 +59,10 @@ public class UserChatWebSocketController {
     public void onMessage(Session fromSession, MessageDto messageDto) {
         Message message = new Message(messageDto);
         log.info("收到客户端消息: {}", message);
+        String token = fromSession.getRequestParameterMap().get("token").get(0);
+        User u = JwtUtil.getUserByToken(token);
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
+        message.setFromUserId(u.getUserId());
         // 持久化
         chatServiceDelegator.save(message, MessageType.TO_USER);
         // 发送
@@ -72,9 +78,6 @@ public class UserChatWebSocketController {
     public void sendMessage(Session fromSession, Session toSession, Message message) {
         if (toSession == null) {
             // by rabbitmq
-            String token = fromSession.getRequestParameterMap().get("token").get(0);
-            User u = JwtUtil.getUserByToken(token);
-            SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
             chatServiceDelegator.sendMessage(message, MessageType.TO_USER);
             return;
         }
