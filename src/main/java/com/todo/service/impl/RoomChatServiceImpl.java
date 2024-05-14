@@ -1,13 +1,10 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
 import com.todo.entity.UserRoom;
-import com.todo.mapper.ChatMapper;
 import com.todo.mapper.UserRoomMapper;
-import com.todo.service.ChatService;
 import com.todo.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;

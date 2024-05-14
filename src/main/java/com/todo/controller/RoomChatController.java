@@ -35,7 +35,7 @@ public class RoomChatController {
     }
 
     @Operation(summary = "分页查询消息")
-    @GetMapping("/{rro}/{pageNum}/{pageSize}")
+    @GetMapping("/{roomId}/{pageNum}/{pageSize}")
     public Result<Page<Message>> findMessagePage(
             @PathVariable Integer pageNum,
             @PathVariable Integer pageSize,

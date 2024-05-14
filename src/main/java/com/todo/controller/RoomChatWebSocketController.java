@@ -6,6 +6,7 @@ import com.todo.entity.User;
 import com.todo.service.RoomService;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.util.JwtUtil;
+import com.todo.util.UserContextUtil;
 import com.todo.util.websocket.JsonMessageDecoder;
 import com.todo.util.websocket.JsonMessageDtoDecoder;
 import com.todo.util.websocket.JsonMessageDtoEncoder;
@@ -60,6 +61,11 @@ public class RoomChatWebSocketController {
     @OnMessage
     public void onMessage(Session session, MessageDto messageDto) {
         Message message = new Message(messageDto);
+        String token = session.getRequestParameterMap().get("token").get(0);
+        User u = JwtUtil.getUserByToken(token);
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
+        message.setFromUserId(UserContextUtil.getUser().getUserId());
+
         log.info("==> 收到客户端消息: {}", message);
         // 持久化
         chatServiceDelegator.save(message, MessageType.TO_ROOM);
@@ -91,10 +97,6 @@ public class RoomChatWebSocketController {
      */
     public void broadCastMessage(Session session, Message message) {
         String roomId = session.getRequestParameterMap().get("roomId").get(0);
-
-        String token = session.getRequestParameterMap().get("token").get(0);
-        User u = JwtUtil.getUserByToken(token);
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
 
         roomService.listUsers(Long.valueOf(roomId)).forEach(user -> {
             Session s = sessionMap.get(user.getUserId());

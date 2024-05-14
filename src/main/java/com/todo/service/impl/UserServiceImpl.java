@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.UserDto;
-import com.todo.entity.Task;
 import com.todo.entity.User;
 import com.todo.mapper.UserMapper;
 import com.todo.service.UserService;
