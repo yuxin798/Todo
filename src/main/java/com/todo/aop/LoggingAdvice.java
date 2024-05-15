@@ -24,6 +24,7 @@ public class LoggingAdvice {
             logTemplate(joinPoint, result);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+            throw throwable;
         }
         return result;
     }
@@ -50,6 +51,7 @@ public class LoggingAdvice {
 
     private Object logArgs(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
+        if (args.length == 0) return "";
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < args.length; i++) {
             stringBuilder

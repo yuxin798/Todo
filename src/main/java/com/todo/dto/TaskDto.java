@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.Date;
 import java.util.List;
@@ -22,13 +23,23 @@ public class TaskDto {
     @ValidName(min = 1, max = 32, message = "任务名必须为1~32个字符", groups = {AddTask.class, UpdateTask.class})
     private String taskName;
 
+    @NotNull(message = "任务id不能为null", groups = AddTask.class)
+    @Min(value = 1, message = "番茄钟时长最小为1", groups = {AddTask.class, UpdateTask.class})
+    private Integer clockDuration;
+
+    private String remark;
+
     @Size(min = 1, message = "预估番茄钟数不能为0", groups = {AddTask.class, UpdateTask.class})
     @NotNull(message = "预估番茄钟数不能为null", groups = AddTask.class)
     private List<Integer> estimate;
 
-    @NotNull(message = "任务id不能为null", groups = AddTask.class)
-    @Min(value = 1, message = "番茄钟时长最小为1", groups = {AddTask.class, UpdateTask.class})
-    private Integer clockDuration;
+    @NotNull(message = "自定义休息时间不能为null", groups = AddTask.class)
+    @Min(value = 1, message = "自定义休息时间最小值为1分钟", groups = {AddTask.class, UpdateTask.class})
+    private Integer restTime;
+
+    @NotNull(message = "完成后第二天是否再次显示不能为null", groups = AddTask.class)
+    @Range(min = 0, max = 1, message = "第二天是否再次显示只能为0或1", groups = {AddTask.class, UpdateTask.class})
+    private Integer again;
 
     private String category;
 

@@ -16,6 +16,7 @@ import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
+import com.todo.vo.TomatoClockVo;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -47,7 +48,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         User user = UserContextUtil.getUser();
         String estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
 
-        Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate, taskDto.getClockDuration(), DefaultGeneratorUtils.getRandomDefaultBackground());
+        Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate, taskDto.getClockDuration(), DefaultGeneratorUtils.getRandomDefaultBackground(), taskDto.getRemark(), taskDto.getRestTime(), taskDto.getAgain());
 
         // 不存在分类 存放到 待办列表
         if (!StringUtils.hasText(taskDto.getCategory())){
@@ -96,6 +97,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(StringUtils.hasText(estimate), Task::getEstimate, estimate)
                 .set(taskDto.getClockDuration() != null, Task::getClockDuration, taskDto.getClockDuration())
                 .set(StringUtils.hasText(taskDto.getCategory()), Task::getCategory, taskDto.getCategory())
+                .set(taskDto.getRestTime() != null, Task::getRestTime, taskDto.getRestTime())
+                .set(taskDto.getAgain() != null, Task::getAgain, taskDto.getAgain())
+                .set(StringUtils.hasText(taskDto.getRemark()), Task::getRemark, taskDto.getRemark())
                 .eq(Task::getTaskId, taskDto.getTaskId());
 
         baseMapper.update(task, wrapper);
@@ -124,8 +128,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .peek(taskVo -> {
                     LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
                             .eq(TomatoClock::getTaskId, taskVo.getTaskId());
-                    List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(w);
-                    taskVo.setTomatoClocks(tomatoClocks);
+                    List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+                            .selectList(w)
+                            .stream()
+                            .map(TomatoClockVo::new)
+                            .toList();
+                    taskVo.setTomatoClocks(tomatoClockVoList);
                 }).toList();
         return PageUtil.of(taskPage, list);
     }
@@ -141,9 +149,13 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         LambdaQueryWrapper<TomatoClock> wrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getTaskId, taskId);
-        List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(wrapper);
+        List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+                .selectList(wrapper)
+                .stream()
+                .map(TomatoClockVo::new)
+                .toList();
         TaskVo taskVo = new TaskVo(task);
-        taskVo.setTomatoClocks(tomatoClocks);
+        taskVo.setTomatoClocks(tomatoClockVoList);
         return taskVo;
     }
 
@@ -157,8 +169,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .peek(taskVo -> {
                     LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
                             .eq(TomatoClock::getTaskId, taskVo.getTaskId());
-                    List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(w);
-                    taskVo.setTomatoClocks(tomatoClocks);
+                    List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+                            .selectList(w)
+                            .stream()
+                            .map(TomatoClockVo::new)
+                            .toList();
+                    taskVo.setTomatoClocks(tomatoClockVoList);
                 })
                 .toList();
     }
@@ -226,6 +242,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     public Result<List<TaskVo>> findByCategory(String category) {
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
+                .in(Task::getTaskStatus, 1, 2)
                 .eq(Task::getCategory, category);
         return Result.success(
                 baseMapper.selectList(wrapper)
@@ -234,8 +251,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                         .peek(taskVo -> {
                             LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
                                     .eq(TomatoClock::getTaskId, taskVo.getTaskId());
-                            List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(w);
-                            taskVo.setTomatoClocks(tomatoClocks);
+                            List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+                                    .selectList(w)
+                                    .stream()
+                                    .map(TomatoClockVo::new)
+                                    .toList();
+                            taskVo.setTomatoClocks(tomatoClockVoList);
                         })
                         .toList()
         );
@@ -249,8 +270,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
+                .in(Task::getTaskStatus, 0, 2)
                 .ge(Task::getCreatedAt, start)
-                .le(Task::getCreatedAt, end);
+                .le(Task::getCreatedAt, end)
+                .orderByAsc(Task::getTaskStatus);
         return Result.success(
                 baseMapper.selectList(wrapper)
                         .stream()
@@ -258,8 +281,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                         .peek(taskVo -> {
                             LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
                                     .eq(TomatoClock::getTaskId, taskVo.getTaskId());
-                            List<TomatoClock> tomatoClocks = tomatoClockMapper.selectList(w);
-                            taskVo.setTomatoClocks(tomatoClocks);
+                            List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+                                    .selectList(w)
+                                    .stream()
+                                    .map(TomatoClockVo::new)
+                                    .toList();
+                            taskVo.setTomatoClocks(tomatoClockVoList);
                         })
                         .toList()
         );

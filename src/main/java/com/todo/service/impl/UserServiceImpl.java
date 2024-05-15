@@ -68,7 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new RuntimeException("帐号已存在，请更换邮箱");
         }
         //邮箱验证码验证
-        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
+        String emailCode = redisTemplate.opsForValue().get(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
         if (!StringUtils.hasText(emailCode) || !emailCode.equals(userDto.getEmailCode())){
             throw new RuntimeException("邮箱验证码错误");
         }
@@ -77,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //用户已注册且已注销，重新注册
         if(queryUser != null && queryUser.getDeleted() == 1){
             if (baseMapper.updateUserByUserId(queryUser.getUserId(), userDto.getUserName(), userDto.getPassword())){
-                redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+                redisTemplate.expire(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
                 return Result.success();
             }else {
                 throw new RuntimeException("网络繁忙，请稍后重试");
@@ -86,7 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //用户从未注册过
         User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultGeneratorUtils.getRandomDefaultAvatar(), DefaultGeneratorUtils.getRandomDefaultSignature());
         if (this.save(user)){
-            redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+            redisTemplate.expire(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
             return Result.success();
         }else {
             throw new RuntimeException("网络繁忙，请稍后重试");
@@ -113,11 +113,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(!StringUtils.hasText(userDto.getEmail())){
             throw new RuntimeException("请填写邮箱");
         }
-        String emailCode = redisTemplate.opsForValue().get(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
+        String emailCode = redisTemplate.opsForValue().get(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
         if (!userDto.getEmailCode().equals(emailCode)){
             throw new RuntimeException("邮箱验证码错误");
         }
-        redisTemplate.expire(RedisConstant.EMAIL_VALIDATE_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
+        redisTemplate.expire(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
@@ -152,7 +152,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         message.setText("验证码为：" + code);
         mailSender.send(message);
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        redisTemplate.opsForValue().set(RedisConstant.EMAIL_VALIDATE_CODE + uuid + email, code, 1, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(RedisConstant.USER_EMAIL_CODE + uuid + email, code, 1, TimeUnit.MINUTES);
         return Result.success(uuid);
     }
 

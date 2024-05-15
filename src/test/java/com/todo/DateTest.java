@@ -3,8 +3,8 @@ package com.todo;
 import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -51,6 +51,21 @@ public class DateTest {
         System.out.println("MonthValue" + "--" + now.getMonthValue());
         System.out.println("Second" + "--" + now.getSecond());
         System.out.println("Nano" + "--" + now.getNano());
+    }
 
+    @Test
+    void MonthDayTest() {
+        System.out.println(MonthDay.now());
+        System.out.println(MonthDay.now(ZoneId.of("+8")));
+        System.out.println(MonthDay.of(Month.MAY, 15));
+        System.out.println(MonthDay.parse("5--25", DateTimeFormatter.ofPattern("M--dd")));
+    }
+
+    @Test
+    void ClockTest() {
+        System.out.println(Clock.systemUTC().millis());
+        System.out.println(Clock.system(ZoneId.of("+8")).millis());
+        System.out.println(Clock.systemDefaultZone().millis());
+        System.out.println(Clock.fixed(Instant.now(), ZoneId.of("+8")).millis());
     }
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 
@@ -39,6 +40,18 @@ public class Task implements Serializable {
     private String taskName;
 
     /**
+     *
+     */
+    @TableField(value = "clock_duration")
+    private Integer clockDuration;
+
+    /**
+     *
+     */
+    @TableField(value = "remark")
+    private String remark;
+
+    /**
      * 
      */
     @TableField(value = "estimate")
@@ -47,8 +60,14 @@ public class Task implements Serializable {
     /**
      *
      */
-    @TableField(value = "clock_duration")
-    private Integer clockDuration;
+    @TableField(value = "rest_time")
+    private Integer restTime;
+
+    /**
+     *
+     */
+    @TableField(value = "again")
+    private Integer again;
 
     /**
      *
@@ -125,12 +144,15 @@ public class Task implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public Task(Long userId, String taskName, String estimate, Integer clockDuration, String background) {
+    public Task(Long userId, String taskName, String estimate, Integer clockDuration, String background, String remark, Integer restTime, Integer again) {
         this.userId = userId;
         this.taskName = taskName;
         this.estimate = estimate;
         this.clockDuration = clockDuration;
         this.background = background;
+        this.remark = remark;
+        this.again = again;
+        this.restTime = restTime;
 
         this.setTomatoClockTimes(0);
         this.setStopTimes(0);
@@ -140,85 +162,41 @@ public class Task implements Serializable {
     }
 
     @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        Task other = (Task) that;
-        return (this.getTaskId() == null ? other.getTaskId() == null : this.getTaskId().equals(other.getTaskId()))
-            && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
-            && (this.getTaskName() == null ? other.getTaskName() == null : this.getTaskName().equals(other.getTaskName()))
-            && (this.getEstimate() == null ? other.getEstimate() == null : this.getEstimate().equals(other.getEstimate()))
-            && (this.getClockDuration() == null ? other.getClockDuration() == null : this.getClockDuration().equals(other.getClockDuration()))
-            && (this.getCategory() == null ? other.getCategory() == null : this.getCategory().equals(other.getCategory()))
-            && (this.getTomatoClockTimes() == null ? other.getTomatoClockTimes() == null : this.getTomatoClockTimes().equals(other.getTomatoClockTimes()))
-            && (this.getStopTimes() == null ? other.getStopTimes() == null : this.getStopTimes().equals(other.getStopTimes()))
-            && (this.getTaskStatus() == null ? other.getTaskStatus() == null : this.getTaskStatus().equals(other.getTaskStatus()))
-            && (this.getBackground() == null ? other.getBackground() == null : this.getBackground().equals(other.getBackground()))
-            && (this.getInnerInterrupt() == null ? other.getInnerInterrupt() == null : this.getInnerInterrupt().equals(other.getInnerInterrupt()))
-            && (this.getOuterInterrupt() == null ? other.getOuterInterrupt() == null : this.getOuterInterrupt().equals(other.getOuterInterrupt()))
-            && (this.getStartedAt() == null ? other.getStartedAt() == null : this.getStartedAt().equals(other.getStartedAt()))
-            && (this.getCompletedAt() == null ? other.getCompletedAt() == null : this.getCompletedAt().equals(other.getCompletedAt()))
-            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
-            && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
-            && (this.getDeleted() == null ? other.getDeleted() == null : this.getDeleted().equals(other.getDeleted()));
+    public String toString() {
+        return "Task{" +
+                "taskId=" + taskId +
+                ", userId=" + userId +
+                ", taskName='" + taskName + '\'' +
+                ", clockDuration=" + clockDuration +
+                ", remark='" + remark + '\'' +
+                ", estimate='" + estimate + '\'' +
+                ", restTime='" + restTime + '\'' +
+                ", again='" + again + '\'' +
+                ", category='" + category + '\'' +
+                ", tomatoClockTimes=" + tomatoClockTimes +
+                ", stopTimes=" + stopTimes +
+                ", taskStatus=" + taskStatus +
+                ", background='" + background + '\'' +
+                ", innerInterrupt=" + innerInterrupt +
+                ", outerInterrupt=" + outerInterrupt +
+                ", startedAt=" + startedAt +
+                ", completedAt=" + completedAt +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", deleted=" + deleted +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return Objects.equals(taskId, task.taskId) && Objects.equals(userId, task.userId) && Objects.equals(taskName, task.taskName) && Objects.equals(clockDuration, task.clockDuration) && Objects.equals(remark, task.remark) && Objects.equals(estimate, task.estimate) && Objects.equals(restTime, task.restTime) && Objects.equals(again, task.again) && Objects.equals(category, task.category) && Objects.equals(tomatoClockTimes, task.tomatoClockTimes) && Objects.equals(stopTimes, task.stopTimes) && Objects.equals(taskStatus, task.taskStatus) && Objects.equals(background, task.background) && Objects.equals(innerInterrupt, task.innerInterrupt) && Objects.equals(outerInterrupt, task.outerInterrupt) && Objects.equals(startedAt, task.startedAt) && Objects.equals(completedAt, task.completedAt) && Objects.equals(createdAt, task.createdAt) && Objects.equals(updatedAt, task.updatedAt) && Objects.equals(deleted, task.deleted);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getTaskId() == null) ? 0 : getTaskId().hashCode());
-        result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
-        result = prime * result + ((getTaskName() == null) ? 0 : getTaskName().hashCode());
-        result = prime * result + ((getEstimate() == null) ? 0 : getEstimate().hashCode());
-        result = prime * result + ((getClockDuration() == null) ? 0 : getClockDuration().hashCode());
-        result = prime * result + ((getCategory() == null) ? 0 : getCategory().hashCode());
-        result = prime * result + ((getTomatoClockTimes() == null) ? 0 : getTomatoClockTimes().hashCode());
-        result = prime * result + ((getStopTimes() == null) ? 0 : getStopTimes().hashCode());
-        result = prime * result + ((getTaskStatus() == null) ? 0 : getTaskStatus().hashCode());
-        result = prime * result + ((getBackground() == null) ? 0 : getBackground().hashCode());
-        result = prime * result + ((getInnerInterrupt() == null) ? 0 : getInnerInterrupt().hashCode());
-        result = prime * result + ((getOuterInterrupt() == null) ? 0 : getOuterInterrupt().hashCode());
-        result = prime * result + ((getStartedAt() == null) ? 0 : getStartedAt().hashCode());
-        result = prime * result + ((getCompletedAt() == null) ? 0 : getCompletedAt().hashCode());
-        result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
-        result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
-        result = prime * result + ((getDeleted() == null) ? 0 : getDeleted().hashCode());
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", taskId=").append(taskId);
-        sb.append(", userId=").append(userId);
-        sb.append(", taskName=").append(taskName);
-        sb.append(", estimate=").append(estimate);
-        sb.append(", clockDuration=").append(clockDuration);
-        sb.append(", category=").append(category);
-        sb.append(", tomatoClockTimes=").append(tomatoClockTimes);
-        sb.append(", stopTimes=").append(stopTimes);
-        sb.append(", taskStatus=").append(taskStatus);
-        sb.append(", background=").append(background);
-        sb.append(", innerInterrupt=").append(innerInterrupt);
-        sb.append(", outerInterrupt=").append(outerInterrupt);
-        sb.append(", startedAt=").append(startedAt);
-        sb.append(", completedAt=").append(completedAt);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", updatedAt=").append(updatedAt);
-        sb.append(", deleted=").append(deleted);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return Objects.hash(taskId, userId, taskName, clockDuration, remark, estimate, restTime, again, category, tomatoClockTimes, stopTimes, taskStatus, background, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 }

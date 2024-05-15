@@ -25,7 +25,7 @@ public class JwtUtil {
     public static boolean verify(String token, User user) {
         try {
             // 设置加密算法
-            Algorithm algorithm = Algorithm.HMAC256("落花有情");
+            Algorithm algorithm = Algorithm.HMAC256(user.getUserId() + "Todo" + user.getEmail());
             JWTVerifier verifier = JWT.require(algorithm)
                     .withClaim("userId", user.getUserId())
                     .withClaim("userName", user.getUserName())
@@ -49,7 +49,7 @@ public class JwtUtil {
      */
     public static String sign(User user) {
         Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
-        Algorithm algorithm = Algorithm.HMAC256("落花有情");
+        Algorithm algorithm = Algorithm.HMAC256(user.getUserId() + "Todo" + user.getEmail());
         // 附带username信息
         return JWT.create()
                 .withClaim("userId", user.getUserId())
@@ -57,7 +57,6 @@ public class JwtUtil {
                 .withClaim("email", user.getEmail())
                 .withExpiresAt(date)
                 .sign(algorithm);
-
     }
 
     /* *
