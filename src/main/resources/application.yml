@@ -82,6 +82,24 @@ todo:
       "[image/gif]": gif
       "[video/mp4]": mp4
       "[image/*]": jpg
+  task:
+    db:
+      cleaner:
+        # 删除的天数
+        days-of-deleted: 30
+
+        # 每周三凌晨三点执行
+#        cron_schedule: "0 0 3 * * 4"
+        cron_schedule: "* * * * * ?"
+
+        # 要清理的表名
+        table-names:
+          - "todo.chat_message"
+          - "todo.room"
+          - "todo.task"
+          - "todo.tomato_clock"
+          - "todo.user"
+          - "todo.user_room"
 
 springdoc:
   swagger-ui:
