@@ -64,7 +64,7 @@ public class RoomChatWebSocketController {
         String token = session.getRequestParameterMap().get("token").get(0);
         User u = JwtUtil.getUserByToken(token);
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u, null, AuthorityUtils.NO_AUTHORITIES));
-        message.setFromUserId(UserContextUtil.getUser().getUserId());
+        message.setFromUserId(u.getUserId());
 
         log.info("==> 收到客户端消息: {}", message);
         // 持久化
