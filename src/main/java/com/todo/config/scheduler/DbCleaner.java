@@ -48,15 +48,6 @@ public class DbCleaner {
                  .build();
     }
 
-    @Bean
-    public Scheduler dbCleanerTrigger(SchedulerFactoryBean schedulerFactoryBean) throws SchedulerException {
-        Scheduler scheduler = schedulerFactoryBean.getObject();
-        assert scheduler != null;
-        scheduler.scheduleJob(jobDetail(), trigger());
-        scheduler.start();
-        return scheduler;
-    }
-
     public class DbCleanerDeletedJob implements Job {
         @Override
         public void execute(JobExecutionContext context) {
