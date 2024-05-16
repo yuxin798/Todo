@@ -1,7 +1,7 @@
 package com.todo.service;
 
-import java.util.Map;
+import com.todo.vo.statistic.StatisticVo;
 
 public interface StatisticService {
-    Map<String, Object> statistic();
+    StatisticVo statistic();
 }

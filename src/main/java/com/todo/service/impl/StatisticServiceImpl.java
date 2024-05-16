@@ -4,6 +4,9 @@ import com.todo.constant.RedisConstant;
 import com.todo.service.StatisticService;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.TaskVo;
+import com.todo.vo.statistic.DayTomatoStatistic;
+import com.todo.vo.statistic.StatisticVo;
+import com.todo.vo.statistic.TaskRatio;
 import lombok.Getter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -31,27 +34,22 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public Map<String, Object> statistic() {
+    public StatisticVo statistic() {
         String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId();
 
         Object o = redisTemplate.opsForValue().get(key);
         if (o != null) {
-            Map<String, Object> map = (Map<String, Object>) o;
-            map.put("cached", true);
-            return map;
+            StatisticVo statisticVo = (StatisticVo) o;
+            statisticVo.setCached(true);
+            return statisticVo;
         }
 
-        HashMap<String, Object> map = new HashMap<>();
         List<TaskVo> tasks = taskServiceImpl.findAll();
 
         // 专注天数
-        long tomatoDays;
-        // 日均专注时长
-        long avgTomatoDuration;
-        // 日均专注番茄数
-        long avgTomatoTimes;
+        int tomatoDays;
         // 专注总时间次数
-        AtomicLong tomatoTimes = new AtomicLong(0);
+        AtomicInteger tomatoTimes = new AtomicInteger(0);
         // 专注总时间
         AtomicLong tomatoDuration = new AtomicLong(0);
         // 某天专注次数
@@ -67,54 +65,53 @@ public class StatisticServiceImpl implements StatisticService {
             })
             .collect(Collectors.groupingBy(
                     // 获取某一天的时间戳，并通过这个分组
-                    t -> LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8")),
+                    t -> 1000 * LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8")),
                     HashMap::new,
                     Collectors.toList())
             );
 
-        HashMap<Long, Map<String, Long>> dayTomato = new HashMap<>();
-
         // 每天的总专注
+        Map<Long, DayTomatoStatistic> dayTomatoMap = new HashMap<>();
         dayTomatoTmp.forEach((k, v) -> {
-            HashMap<String, Long> res = v.stream()
+            DayTomatoStatistic dayTomato = v.stream()
                     .map(t -> {
-                        HashMap<String, Long> m = new HashMap<>();
-                        m.put("tomatoTimes", Long.valueOf(t.getTomatoClockTimes()));
-                        m.put("tomatoDuration", (long) t.getTomatoClockTimes() * t.getClockDuration());
-                        return m;
+                        DayTomatoStatistic dayTomatoStatistic = new DayTomatoStatistic();
+                        dayTomatoStatistic.setTomatoTimes(t.getTomatoClockTimes());
+                        dayTomatoStatistic.setTomatoDuration(t.getTomatoClockTimes() * t.getClockDuration().longValue());
+                        return dayTomatoStatistic;
                     })
-                    .reduce(new HashMap<>(), (m1, m2) -> {
-                        m1.merge("tomatoTimes", m2.get("tomatoTimes"), Long::sum);
-                        m1.merge("tomatoDuration", m2.get("tomatoDuration"), Long::sum);
-                        return m1;
+                    .reduce(new DayTomatoStatistic(0, 0L), (s1, s2) -> {
+                        s1.setTomatoTimes(s1.getTomatoTimes() + s2.getTomatoTimes());
+                        s1.setTomatoDuration(s1.getTomatoDuration() + s2.getTomatoDuration());
+                        return s1;
                     });
-            dayTomato.put(k, res);
+            dayTomatoMap.put(k, dayTomato);
         });
 
+        // 整合数据
+        StatisticVo statisticVo = new StatisticVo();
         // 专注时长分布
-        map.put("durationByDay", getFocusDuration(dayTomatoTmp, DAY));
-        map.put("durationByWeek", getFocusDuration(dayTomatoTmp, WEEK));
-        map.put("durationByMonth", getFocusDuration(dayTomatoTmp, MONTH));
+        statisticVo.setRatioByDurationOfDay(getFocusDuration(dayTomatoTmp, DAY));
+        statisticVo.setRatioByDurationOfWeek(getFocusDuration(dayTomatoTmp, WEEK));
+        statisticVo.setRatioByDurationOfMonth(getFocusDuration(dayTomatoTmp, MONTH));
 
         // 日均时长
-        tomatoDays = dayTomato.size();
-        avgTomatoDuration = tomatoDays == 0 ? 0 : tomatoDuration.get() / tomatoDays;
-        avgTomatoTimes = tomatoDays == 0 ? 0 : tomatoTimes.get() / tomatoDays;
+        tomatoDays = dayTomatoMap.size();
+        statisticVo.setAvgTomatoTimes(tomatoDays == 0 ? 0 : tomatoTimes.get() / tomatoDays);
+        statisticVo.setAvgTomatoDuration(tomatoDays == 0 ? 0 : tomatoDuration.get() / tomatoDays);
 
-        map.put("tomatoDays", tomatoDays);
-        map.put("avgTomatoTimes", avgTomatoTimes);
-        map.put("avgTomatoDuration", avgTomatoDuration);
-        map.put("tomatoTimes", tomatoTimes.get());
-        map.put("tomatoDuration", tomatoDuration.get());
-        map.put("dayTomato", dayTomato);
-        map.put("cached", false);
+        statisticVo.setTomatoDays(tomatoDays);
+        statisticVo.setTomatoTimes(tomatoTimes.get());
+        statisticVo.setTomatoDuration(tomatoDuration.get());
+        statisticVo.setDayTomatoMap(dayTomatoMap);
+        statisticVo.setCached(true);
 
-        redisTemplate.opsForValue().set(key, map, 5, TimeUnit.SECONDS);
-        return map;
+        redisTemplate.opsForValue().set(key, statisticVo, 5, TimeUnit.SECONDS);
+        return statisticVo;
     }
 
     @Getter
-    enum Unit {
+    public enum Unit {
         DAY(1), WEEK(7), MONTH(30), YEAR(365);
 
         private final Integer days;
@@ -156,12 +153,12 @@ public class StatisticServiceImpl implements StatisticService {
 
     }
 
-    private Map<String, Double> getFocusDuration(HashMap<Long, List<TaskVo>> dayTomatoTmp, Unit timeUnit) {
+    private List<TaskRatio> getFocusDuration(HashMap<Long, List<TaskVo>> dayTomatoTmp, Unit timeUnit) {
         // exclusive
-        long start = timeUnit.getStartEpochSecond();
+        long start = 1000 * timeUnit.getStartEpochSecond();
 
         // inclusive
-        long end = timeUnit.getEndEpochSecond();
+        long end = 1000 * timeUnit.getEndEpochSecond();
 
         Map<String, Integer> tmp = new HashMap<>();
         AtomicInteger sum = new AtomicInteger();
@@ -175,8 +172,8 @@ public class StatisticServiceImpl implements StatisticService {
             }
         });
 
-        HashMap<String, Double> res = new HashMap<>();
-        tmp.forEach((k, v) -> res.put(k, 1.0 * v / sum.get()));
-        return res;
+        ArrayList<TaskRatio> taskRatios = new ArrayList<>();
+        tmp.forEach((k, v) -> taskRatios.add(new TaskRatio(k, 1.0 * v / sum.get())));
+        return taskRatios;
     }
 }

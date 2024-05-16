@@ -1,6 +1,5 @@
 package com.todo.constraints;
 
-import com.todo.constraints.validators.AvatarLinkValidator;
 import com.todo.constraints.validators.ValidNameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

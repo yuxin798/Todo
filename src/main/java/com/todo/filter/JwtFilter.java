@@ -31,6 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 matcher.match("/swagger-ui.html", requestURI) ||
                 matcher.match("/v3/**", requestURI) ||
                 matcher.match("/webjars/**", requestURI) ||
+                matcher.match("/actuator/**", requestURI) ||
                 request.getMethod().equals("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;

@@ -1,6 +1,8 @@
 server:
   port: 80
 spring:
+  application:
+    name: Todo-Application
   datasource:
     url: jdbc:mysql://8.130.17.7:3307/todo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
@@ -129,3 +131,12 @@ knife4j:
   setting:
     language: zh_cn
     enable-version: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    tags:
+      application: ${spring.application.name}

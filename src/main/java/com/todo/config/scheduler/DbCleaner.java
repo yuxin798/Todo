@@ -6,7 +6,6 @@ import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import java.util.TimeZone;
 

@@ -2,6 +2,7 @@ package com.todo.controller;
 
 import com.todo.service.impl.StatisticServiceImpl;
 import com.todo.vo.Result;
+import com.todo.vo.statistic.StatisticVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +27,8 @@ public class StatisticController {
 
     @Operation(summary = "获得统计数据")
     @GetMapping("/")
-    public Result<Map<String, Object>> statistic() {
-        Map<String, Object> map = statisticServiceImpl.statistic();
-        return Result.success(map);
+    public Result<StatisticVo> statistic() {
+        StatisticVo statisticVo = statisticServiceImpl.statistic();
+        return Result.success(statisticVo);
     }
 }
