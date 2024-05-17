@@ -54,10 +54,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         // 不存在分类 存放到 待办列表
         if (!StringUtils.hasText(taskDto.getCategory())){
-            task.setTaskStatus(TODO_TODAY);
+            task.taskStatusEnum(TODO_TODAY);
         }else {
             // 存在分类 存放到 清单列表
-            task.setTaskStatus(CHECKLIST);
+            task.taskStatusEnum(CHECKLIST);
             task.setCategory(taskDto.getCategory());
         }
 
@@ -204,7 +204,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         Optional<TomatoClock> reduce = tomatoClockList
                 .stream()
-                .filter(tomatoClock -> tomatoClock.getCompletedAt() != null && (tomatoClock.getClockStatus() == TomatoClock.Status.COMPLETED || tomatoClock.getClockStatus() == TomatoClock.Status.TERMINATED))
+                .filter(tomatoClock ->
+                        tomatoClock.getCompletedAt() != null
+                        && (tomatoClock.clockStatusEnum() == TomatoClock.Status.COMPLETED
+                        || tomatoClock.clockStatusEnum() == TomatoClock.Status.TERMINATED))
                 .reduce((first, second) -> second);
 
         if (reduce.isPresent()){
@@ -219,9 +222,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         AtomicInteger stopTimes = new AtomicInteger(0);
         tomatoClockList
                 .forEach(tomatoClock -> {
-                    if (tomatoClock.getClockStatus() == TomatoClock.Status.COMPLETED) {
+                    if (tomatoClock.clockStatusEnum() == TomatoClock.Status.COMPLETED) {
                         tomatoClockTimes.incrementAndGet();
-                    } else if (tomatoClock.getClockStatus() == TomatoClock.Status.TERMINATED) {
+                    } else if (tomatoClock.clockStatusEnum() == TomatoClock.Status.TERMINATED) {
                         stopTimes.incrementAndGet();
                     }
                     innerInterrupt.addAndGet(tomatoClock.getInnerInterrupt());
@@ -235,7 +238,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(Task::getOuterInterrupt, outerInterrupt.intValue())
                 .set(Task::getTomatoClockTimes, tomatoClockTimes.intValue())
                 .set(Task::getStopTimes, stopTimes.intValue())
-                .set(Task::getTaskStatus, 2)
+                .set(Task::getTaskStatus, COMPLETED.getCode())
                 .eq(Task::getTaskId, taskId));
         return Result.success();
     }
@@ -244,7 +247,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     public Result<List<TaskVo>> findByCategory(String category) {
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
-                .in(Task::getTaskStatus, 1, 2)
+                .in(Task::getTaskStatus, CHECKLIST.getCode(), COMPLETED.getCode())
                 .eq(Task::getCategory, category);
         return Result.success(
                 baseMapper.selectList(wrapper)
@@ -272,7 +275,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
-                .in(Task::getTaskStatus, 0, 2)
+                .in(Task::getTaskStatus, TODO_TODAY.getCode(), COMPLETED.getCode())
                 .ge(Task::getCreatedAt, start)
                 .le(Task::getCreatedAt, end)
                 .orderByAsc(Task::getTaskStatus);

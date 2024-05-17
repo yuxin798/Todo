@@ -157,7 +157,7 @@ public class Task implements Serializable {
 
         this.setTomatoClockTimes(0);
         this.setStopTimes(0);
-        this.setTaskStatus(Status.CHECKLIST);
+        this.taskStatusEnum(Status.CHECKLIST);
         this.setInnerInterrupt(0);
         this.setOuterInterrupt(0);
     }
@@ -201,11 +201,11 @@ public class Task implements Serializable {
         return Objects.hash(taskId, userId, taskName, clockDuration, remark, estimate, restTime, again, category, tomatoClockTimes, stopTimes, taskStatus, background, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
-    public Task.Status getTaskStatus() {
+    public Task.Status taskStatusEnum() {
         return Status.of(taskStatus);
     }
 
-    public void setTaskStatus(Task.Status taskStatus) {
+    public void taskStatusEnum(Task.Status taskStatus) {
         this.taskStatus = taskStatus.code;
     }
 

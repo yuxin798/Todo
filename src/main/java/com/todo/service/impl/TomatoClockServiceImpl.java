@@ -51,7 +51,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
             if (i == 1) {
                 // 为第一个番茄钟添加 初始值
                 tomatoClock.setStartedAt(new Date());
-                tomatoClock.setClockStatus(DOING);
+                tomatoClock.clockStatusEnum(DOING);
                 taskMapper.update(new LambdaUpdateWrapper<>(Task.class)
                         .set(Task::getStartedAt, new Date())
                         .eq(Task::getTaskId, taskId)
@@ -72,7 +72,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> startTomatoClock(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
 
         // 断言番茄钟的状态为未开始
         assertStatus(clockStatus, NOT_STARTED);
@@ -108,7 +108,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> completeTomatoClock(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
 
         // 断言番茄钟的状态为已开始
         assertStatus(clockStatus, DOING);
@@ -126,7 +126,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> innerInterrupt(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
 
         // 断言番茄钟的状态为已开始
         assertStatus(clockStatus, DOING);
@@ -141,7 +141,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> outerInterrupt(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
 
         // 断言番茄钟的状态为已开始
         assertStatus(clockStatus, DOING);

@@ -165,11 +165,11 @@ public class TomatoClock implements Serializable {
         return sb.toString();
     }
 
-    public TomatoClock.Status getClockStatus() {
+    public TomatoClock.Status clockStatusEnum() {
         return TomatoClock.Status.of(this.clockStatus);
     }
 
-    public void setClockStatus(TomatoClock.Status clockStatus) {
+    public void clockStatusEnum(TomatoClock.Status clockStatus) {
         this.clockStatus = clockStatus.code;
     }
 

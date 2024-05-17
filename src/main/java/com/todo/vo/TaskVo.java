@@ -48,7 +48,7 @@ public class TaskVo {
         category = task.getCategory();
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
-        taskStatus = task.getTaskStatus().getCode();
+        taskStatus = task.getTaskStatus();
         background = task.getBackground();
         innerInterrupt = task.getInnerInterrupt();
         outerInterrupt = task.getOuterInterrupt();
