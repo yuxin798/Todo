@@ -14,18 +14,20 @@ import com.todo.vo.TomatoClockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.todo.entity.TomatoClock.Status.*;
+
 import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
 /**
-* @author 28080
-* @description 针对表【tomato_clock】的数据库操作Service实现
-* @createDate 2024-04-17 17:09:33
-*/
+ * @author 28080
+ * @description 针对表【tomato_clock】的数据库操作Service实现
+ * @createDate 2024-04-17 17:09:33
+ */
 @Service
 public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, TomatoClock>
-    implements TomatoClockService {
+        implements TomatoClockService {
 
     private final TaskMapper taskMapper;
 
@@ -49,7 +51,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
             if (i == 1) {
                 // 为第一个番茄钟添加 初始值
                 tomatoClock.setStartedAt(new Date());
-                tomatoClock.setClockStatus(1);
+                tomatoClock.setClockStatus(DOING);
                 taskMapper.update(new LambdaUpdateWrapper<>(Task.class)
                         .set(Task::getStartedAt, new Date())
                         .eq(Task::getTaskId, taskId)
@@ -58,9 +60,9 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
             this.save(tomatoClock);
         });
 
-        //返回新增的番茄钟列表
+        // 返回新增的番茄钟列表
         return Result.success(
-                this.list(queryWrapper.last(" limit " + count  + "," + estimate))
+                this.list(queryWrapper.last(" limit " + count + "," + estimate))
                         .stream()
                         .map(TomatoClockVo::new)
                         .toList()
@@ -70,43 +72,52 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> startTomatoClock(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        Integer clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
 
-        if (clockStatus == 0){
-            throw new RuntimeException("该番茄钟已完成");
-        }else if (clockStatus == 1){
-            throw new RuntimeException("该番茄钟已开始");
-        }else if (clockStatus == 3){
-            throw new RuntimeException("该番茄钟已停止");
-        }
+        // 断言番茄钟的状态为未开始
+        assertStatus(clockStatus, NOT_STARTED);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getClockStatus, 1)
+                .set(TomatoClock::getClockStatus, DOING)
                 .set(TomatoClock::getStartedAt, new Date())
                 .eq(TomatoClock::getClockId, clockId)
-                .eq(TomatoClock::getClockStatus, 2);
+                .eq(TomatoClock::getClockStatus, NOT_STARTED);
         this.update(updateWrapper);
         return Result.success();
+    }
+
+    /**
+     * 断言番茄中的状态
+     * @param clockStatus    番茄钟的状态
+     * @param expectedStatus 预期番茄钟的状态
+     */
+    private void assertStatus(TomatoClock.Status clockStatus, TomatoClock.Status expectedStatus) {
+        if (clockStatus == expectedStatus) return;
+
+        if (clockStatus == COMPLETED) {
+            throw new RuntimeException("该番茄钟已完成");
+        } else if (clockStatus == DOING) {
+            throw new RuntimeException("该番茄钟已开始");
+        } else if (clockStatus == NOT_STARTED) {
+            throw new RuntimeException("该番茄钟未开始");
+        } else if (clockStatus == TERMINATED) {
+            throw new RuntimeException("该番茄钟已停止");
+        }
     }
 
     @Override
     public Result<?> completeTomatoClock(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        Integer clockStatus = tomatoClock.getClockStatus();
+        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
 
-        if (clockStatus == 0){
-            throw new RuntimeException("该番茄钟已完成");
-        }else if (clockStatus == 2){
-            throw new RuntimeException("该番茄钟未开始");
-        }else if (clockStatus == 3){
-            throw new RuntimeException("该番茄钟已停止");
-        }
+        // 断言番茄钟的状态为已开始
+        assertStatus(clockStatus, DOING);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getClockStatus, 0)
+                .set(TomatoClock::getClockStatus, COMPLETED)
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getClockId, clockId)
-                .eq(TomatoClock::getClockStatus, 1);
+                .eq(TomatoClock::getClockStatus, DOING);
         update(updateWrapper);
 
         return Result.success();
@@ -115,15 +126,10 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> innerInterrupt(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
+        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
 
-        Integer clockStatus = tomatoClock.getClockStatus();
-        if (clockStatus == 0){
-            throw new RuntimeException("该番茄钟已完成");
-        }else if (clockStatus == 2){
-            throw new RuntimeException("该番茄钟未开始");
-        }else if (clockStatus == 3){
-            throw new RuntimeException("该番茄钟已停止");
-        }
+        // 断言番茄钟的状态为已开始
+        assertStatus(clockStatus, DOING);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getInnerInterrupt, 1 + tomatoClock.getInnerInterrupt())
@@ -135,15 +141,10 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<?> outerInterrupt(Long clockId) {
         TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
+        TomatoClock.Status clockStatus = tomatoClock.getClockStatus();
 
-        Integer clockStatus = tomatoClock.getClockStatus();
-        if (clockStatus == 0){
-            throw new RuntimeException("该番茄钟已完成");
-        }else if (clockStatus == 2){
-            throw new RuntimeException("该番茄钟未开始");
-        }else if (clockStatus == 3){
-            throw new RuntimeException("该番茄钟已停止");
-        }
+        // 断言番茄钟的状态为已开始
+        assertStatus(clockStatus, DOING);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
                 .set(TomatoClock::getOuterInterrupt, 1 + tomatoClock.getOuterInterrupt())
@@ -157,14 +158,14 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         dataVerificationAndAuthenticationByTaskId(taskId);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getClockStatus, 3)
+                .set(TomatoClock::getClockStatus, TERMINATED)
                 .set(stopReason != null, TomatoClock::getStopReason, stopReason)
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getTaskId, taskId)
                 .and(wrapper -> wrapper
-                        .eq(TomatoClock::getClockStatus, 1)
+                        .eq(TomatoClock::getClockStatus, DOING)
                         .or()
-                        .eq(TomatoClock::getClockStatus, 2));
+                        .eq(TomatoClock::getClockStatus, NOT_STARTED));
 
         this.update(updateWrapper);
         return Result.success();
@@ -181,8 +182,8 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         dataVerificationAndAuthenticationByTaskId(taskId);
         return Result.success(
                 this.list(new LambdaQueryWrapper<TomatoClock>()
-                        .eq(TomatoClock::getTaskId, taskId)
-                        .orderByAsc(TomatoClock::getSequence))
+                                .eq(TomatoClock::getTaskId, taskId)
+                                .orderByAsc(TomatoClock::getSequence))
                         .stream()
                         .map(TomatoClockVo::new)
                         .toList()
@@ -201,29 +202,29 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         return Result.success();
     }
 
-    //根据番茄钟Id进行数据校验及身份认证
-    private TomatoClock dataVerificationAndAuthenticationByClockId(Long clockId){
+    // 根据番茄钟Id进行数据校验及身份认证
+    private TomatoClock dataVerificationAndAuthenticationByClockId(Long clockId) {
         TomatoClock tomatoClock = this.getById(clockId);
-        if (tomatoClock == null){
+        if (tomatoClock == null) {
             throw new RuntimeException("不存在该番茄钟");
         }
         Task task = taskMapper.selectById(tomatoClock.getTaskId());
-        if (task == null){
+        if (task == null) {
             throw new RuntimeException("不存在该任务");
         }
-        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())){
+        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())) {
             throw new RuntimeException("没有权限");
         }
         return tomatoClock;
     }
 
-    //根据任务Id进行数据校验及身份认证
-    private void dataVerificationAndAuthenticationByTaskId(Long taskId){
+    // 根据任务Id进行数据校验及身份认证
+    private void dataVerificationAndAuthenticationByTaskId(Long taskId) {
         Task task = taskMapper.selectById(taskId);
-        if (task == null){
+        if (task == null) {
             throw new RuntimeException("不存在该任务");
         }
-        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())){
+        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())) {
             throw new RuntimeException("没有权限");
         }
     }

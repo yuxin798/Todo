@@ -28,6 +28,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.todo.entity.Task.Status.*;
+
 /**
 * @author 28080
 * @description 针对表【task】的数据库操作Service实现
@@ -52,10 +54,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         // 不存在分类 存放到 待办列表
         if (!StringUtils.hasText(taskDto.getCategory())){
-            task.setTaskStatus(0);
+            task.setTaskStatus(TODO_TODAY);
         }else {
             // 存在分类 存放到 清单列表
-            task.setTaskStatus(1);
+            task.setTaskStatus(CHECKLIST);
             task.setCategory(taskDto.getCategory());
         }
 
@@ -202,7 +204,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         Optional<TomatoClock> reduce = tomatoClockList
                 .stream()
-                .filter(tomatoClock -> tomatoClock.getCompletedAt() != null && (tomatoClock.getClockStatus() == 0 || tomatoClock.getClockStatus() == 3))
+                .filter(tomatoClock -> tomatoClock.getCompletedAt() != null && (tomatoClock.getClockStatus() == TomatoClock.Status.COMPLETED || tomatoClock.getClockStatus() == TomatoClock.Status.TERMINATED))
                 .reduce((first, second) -> second);
 
         if (reduce.isPresent()){
@@ -217,9 +219,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         AtomicInteger stopTimes = new AtomicInteger(0);
         tomatoClockList
                 .forEach(tomatoClock -> {
-                    if (tomatoClock.getClockStatus() == 0) {
+                    if (tomatoClock.getClockStatus() == TomatoClock.Status.COMPLETED) {
                         tomatoClockTimes.incrementAndGet();
-                    } else if (tomatoClock.getClockStatus() == 3) {
+                    } else if (tomatoClock.getClockStatus() == TomatoClock.Status.TERMINATED) {
                         stopTimes.incrementAndGet();
                     }
                     innerInterrupt.addAndGet(tomatoClock.getInnerInterrupt());

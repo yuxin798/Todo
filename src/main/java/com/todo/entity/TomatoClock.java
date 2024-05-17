@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -162,5 +163,34 @@ public class TomatoClock implements Serializable {
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();
+    }
+
+    public TomatoClock.Status getClockStatus() {
+        return TomatoClock.Status.of(this.clockStatus);
+    }
+
+    public void setClockStatus(TomatoClock.Status clockStatus) {
+        this.clockStatus = clockStatus.code;
+    }
+
+    @Getter
+    public enum Status {
+        COMPLETED(0), DOING(1), NOT_STARTED(2), TERMINATED(3);
+
+        private final Integer code;
+
+        Status(Integer code) {
+            this.code = code;
+        }
+
+        public static TomatoClock.Status of(Integer code) {
+            return switch (code) {
+                case 0 -> TomatoClock.Status.COMPLETED;
+                case 1 -> TomatoClock.Status.DOING;
+                case 2 -> TomatoClock.Status.NOT_STARTED;
+                case 3 -> TomatoClock.Status.TERMINATED;
+                default -> null;
+            };
+        }
     }
 }

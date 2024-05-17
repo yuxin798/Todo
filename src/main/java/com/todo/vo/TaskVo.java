@@ -1,7 +1,6 @@
 package com.todo.vo;
 
 import com.todo.entity.Task;
-import com.todo.entity.TomatoClock;
 import com.todo.util.ListUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,7 +48,7 @@ public class TaskVo {
         category = task.getCategory();
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
-        taskStatus = task.getTaskStatus();
+        taskStatus = task.getTaskStatus().getCode();
         background = task.getBackground();
         innerInterrupt = task.getInnerInterrupt();
         outerInterrupt = task.getOuterInterrupt();

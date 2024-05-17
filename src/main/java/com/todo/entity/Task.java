@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -156,7 +157,7 @@ public class Task implements Serializable {
 
         this.setTomatoClockTimes(0);
         this.setStopTimes(0);
-        this.setTaskStatus(1);
+        this.setTaskStatus(Status.CHECKLIST);
         this.setInnerInterrupt(0);
         this.setOuterInterrupt(0);
     }
@@ -198,5 +199,34 @@ public class Task implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(taskId, userId, taskName, clockDuration, remark, estimate, restTime, again, category, tomatoClockTimes, stopTimes, taskStatus, background, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
+    }
+
+    public Task.Status getTaskStatus() {
+        return Status.of(taskStatus);
+    }
+
+    public void setTaskStatus(Task.Status taskStatus) {
+        this.taskStatus = taskStatus.code;
+    }
+
+    @Getter
+    public enum Status {
+        TODO_TODAY(0), CHECKLIST(1), COMPLETED(2), DELETED(3);
+
+        private final Integer code;
+
+        Status(Integer code) {
+            this.code = code;
+        }
+
+        public static Status of(Integer code) {
+            return switch (code) {
+                case 0 -> Task.Status.TODO_TODAY;
+                case 1 -> Task.Status.CHECKLIST;
+                case 2 -> Task.Status.COMPLETED;
+                case 3 -> Task.Status.DELETED;
+                default -> null;
+            };
+        }
     }
 }
