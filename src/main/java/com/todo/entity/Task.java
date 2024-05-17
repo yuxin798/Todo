@@ -211,12 +211,14 @@ public class Task implements Serializable {
 
     @Getter
     public enum Status {
-        TODO_TODAY(0), CHECKLIST(1), COMPLETED(2), DELETED(3);
+        TODO_TODAY(0, "今日待办"), CHECKLIST(1, "清单列表"), COMPLETED(2, "已完成"), DELETED(3, "已删除");
 
         private final Integer code;
+        private final String info;
 
-        Status(Integer code) {
+        Status(Integer code, String info) {
             this.code = code;
+            this.info = info;
         }
 
         public static Status of(Integer code) {

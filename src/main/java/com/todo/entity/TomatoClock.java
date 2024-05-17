@@ -175,12 +175,14 @@ public class TomatoClock implements Serializable {
 
     @Getter
     public enum Status {
-        COMPLETED(0), DOING(1), NOT_STARTED(2), TERMINATED(3);
+        COMPLETED(0, "已完成"), DOING(1, "正在进行"), NOT_STARTED(2, "未开始"), TERMINATED(3, "已终止");
 
         private final Integer code;
+        private final String info;
 
-        Status(Integer code) {
+        Status(Integer code, String info) {
             this.code = code;
+            this.info = info;
         }
 
         public static TomatoClock.Status of(Integer code) {
