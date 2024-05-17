@@ -9,6 +9,7 @@ import com.todo.vo.TaskVo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author 28080
@@ -34,4 +35,6 @@ public interface TaskService extends IService<Task> {
     Result<List<TaskVo>> findByCategory(String category);
 
     Result<List<TaskVo>> findByDay(Long timestamp);
+
+    Result<Map<String, List<TaskVo>>> allByCategory();
 }

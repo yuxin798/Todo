@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "任务API")
 @RestController
@@ -78,6 +79,12 @@ public class TaskController {
     @GetMapping("/findByCategory/{category}")
     public Result<List<TaskVo>> findByCategory(@PathVariable String category) {
         return taskService.findByCategory(category);
+    }
+
+    @Operation(summary = "查询某个人所有类别的任务查询某个人所有类别的任务")
+    @GetMapping("/allByCategory")
+    public Result<Map<String, List<TaskVo>>> allByCategory() {
+        return taskService.allByCategory();
     }
 
     @Operation(summary = "查询某一天的任务")

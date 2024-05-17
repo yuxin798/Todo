@@ -22,11 +22,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.*;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.todo.entity.Task.Status.*;
 
@@ -295,6 +293,24 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                         })
                         .toList()
         );
+    }
+
+    @Override
+    public Result<Map<String, List<TaskVo>>> allByCategory() {
+        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
+                .in(Task::getTaskStatus, 1, 2)
+                .isNotNull(Task::getCategory)
+                .orderByAsc(Task::getCreatedAt);
+
+        Map<String, List<TaskVo>> map = baseMapper.selectList(queryWrapper)
+                .stream()
+                .map(TaskVo::new)
+                .collect(Collectors.groupingBy(
+                        TaskVo::getCategory,
+                        HashMap::new,
+                        Collectors.toList()));
+        return Result.success(map);
     }
 }
 
