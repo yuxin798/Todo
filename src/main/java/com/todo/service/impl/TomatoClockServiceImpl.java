@@ -114,10 +114,10 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         assertStatus(clockStatus, DOING);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getClockStatus, COMPLETED)
+                .set(TomatoClock::getClockStatus, COMPLETED.getCode())
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getClockId, clockId)
-                .eq(TomatoClock::getClockStatus, DOING);
+                .eq(TomatoClock::getClockStatus, DOING.getCode());
         update(updateWrapper);
 
         return Result.success();
@@ -163,9 +163,9 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getTaskId, taskId)
                 .and(wrapper -> wrapper
-                        .eq(TomatoClock::getClockStatus, DOING)
+                        .eq(TomatoClock::getClockStatus, DOING.getCode())
                         .or()
-                        .eq(TomatoClock::getClockStatus, NOT_STARTED));
+                        .eq(TomatoClock::getClockStatus, NOT_STARTED.getCode()));
 
         this.update(updateWrapper);
         return Result.success();
