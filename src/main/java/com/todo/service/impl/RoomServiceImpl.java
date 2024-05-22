@@ -124,7 +124,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .in(User::getUserId, ids);
         return userMapper.selectList(userWrapper)
                 .stream()
-                .map(user -> new UserVo(user.getUserId(), user.getUserName(), user.getAvatar()))
+                .map(UserVo::new)
                 .toList();
     }
 
@@ -361,7 +361,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .in(User::getUserId, ids);
         return userMapper.selectList(wrapper)
                 .stream()
-                .map(u -> new UserVo(u.getUserId(), u.getUserName(), u.getAvatar()))
+                .map(UserVo::new)
                 .toList();
     }
 }

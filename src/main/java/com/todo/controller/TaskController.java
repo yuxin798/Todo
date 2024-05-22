@@ -81,7 +81,7 @@ public class TaskController {
         return taskService.findByCategory(category);
     }
 
-    @Operation(summary = "查询某个人所有类别的任务查询某个人所有类别的任务")
+    @Operation(summary = "查询某个人所有类别的任务")
     @GetMapping("/allByCategory")
     public Result<Map<String, List<TaskVo>>> allByCategory() {
         return taskService.allByCategory();

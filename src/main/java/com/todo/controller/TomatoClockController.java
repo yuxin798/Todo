@@ -1,16 +1,11 @@
 package com.todo.controller;
 
-import com.todo.dto.TomatoClockDto;
-import com.todo.entity.TomatoClock;
 import com.todo.service.TomatoClockService;
 import com.todo.vo.Result;
 import com.todo.vo.TomatoClockVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +23,9 @@ public class TomatoClockController {
     }
 
     @Operation(summary = "添加番茄钟")
-    @PostMapping("/addTomatoClock/{taskId}/{estimate}")
-    public Result<List<TomatoClockVo>> addTomatoClock(@PathVariable Long taskId, @PathVariable Integer estimate) {
-        return tomatoClockService.addTomatoClock(taskId, estimate);
+    @PostMapping("/addTomatoClock/{taskId}")
+    public Result<List<TomatoClockVo>> addTomatoClock(@PathVariable Long taskId) {
+        return tomatoClockService.addTomatoClock(taskId);
     }
 
     @Operation(summary = "开始执行一个番茄钟")

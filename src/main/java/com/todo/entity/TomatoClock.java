@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 
@@ -34,6 +35,12 @@ public class TomatoClock implements Serializable {
      */
     @TableField(value = "sequence")
     private Integer sequence;
+
+    /**
+     *
+     */
+    @TableField(value = "clock_duration")
+    private Integer clockDuration;
 
     /**
      * 
@@ -92,77 +99,42 @@ public class TomatoClock implements Serializable {
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
-    public TomatoClock(Long taskId, int sequence) {
+    public TomatoClock(Long taskId, int sequence, Integer clockDuration) {
         this.taskId = taskId;
         this.sequence = sequence;
+        this.clockDuration = clockDuration;
     }
 
     @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        TomatoClock other = (TomatoClock) that;
-        return (this.getClockId() == null ? other.getClockId() == null : this.getClockId().equals(other.getClockId()))
-            && (this.getTaskId() == null ? other.getTaskId() == null : this.getTaskId().equals(other.getTaskId()))
-            && (this.getSequence() == null ? other.getSequence() == null : this.getSequence().equals(other.getSequence()))
-            && (this.getClockStatus() == null ? other.getClockStatus() == null : this.getClockStatus().equals(other.getClockStatus()))
-            && (this.getStopReason() == null ? other.getStopReason() == null : this.getStopReason().equals(other.getStopReason()))
-            && (this.getInnerInterrupt() == null ? other.getInnerInterrupt() == null : this.getInnerInterrupt().equals(other.getInnerInterrupt()))
-            && (this.getOuterInterrupt() == null ? other.getOuterInterrupt() == null : this.getOuterInterrupt().equals(other.getOuterInterrupt()))
-            && (this.getStartedAt() == null ? other.getStartedAt() == null : this.getStartedAt().equals(other.getStartedAt()))
-            && (this.getCompletedAt() == null ? other.getCompletedAt() == null : this.getCompletedAt().equals(other.getCompletedAt()))
-            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
-            && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
-            && (this.getDeleted() == null ? other.getDeleted() == null : this.getDeleted().equals(other.getDeleted()));
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TomatoClock that = (TomatoClock) o;
+        return Objects.equals(clockId, that.clockId) && Objects.equals(taskId, that.taskId) && Objects.equals(sequence, that.sequence) && Objects.equals(clockDuration, that.clockDuration) && Objects.equals(clockStatus, that.clockStatus) && Objects.equals(stopReason, that.stopReason) && Objects.equals(innerInterrupt, that.innerInterrupt) && Objects.equals(outerInterrupt, that.outerInterrupt) && Objects.equals(startedAt, that.startedAt) && Objects.equals(completedAt, that.completedAt) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(deleted, that.deleted);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getClockId() == null) ? 0 : getClockId().hashCode());
-        result = prime * result + ((getTaskId() == null) ? 0 : getTaskId().hashCode());
-        result = prime * result + ((getSequence() == null) ? 0 : getSequence().hashCode());
-        result = prime * result + ((getClockStatus() == null) ? 0 : getClockStatus().hashCode());
-        result = prime * result + ((getStopReason() == null) ? 0 : getStopReason().hashCode());
-        result = prime * result + ((getInnerInterrupt() == null) ? 0 : getInnerInterrupt().hashCode());
-        result = prime * result + ((getOuterInterrupt() == null) ? 0 : getOuterInterrupt().hashCode());
-        result = prime * result + ((getStartedAt() == null) ? 0 : getStartedAt().hashCode());
-        result = prime * result + ((getCompletedAt() == null) ? 0 : getCompletedAt().hashCode());
-        result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
-        result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
-        result = prime * result + ((getDeleted() == null) ? 0 : getDeleted().hashCode());
-        return result;
+        return Objects.hash(clockId, taskId, sequence, clockDuration, clockStatus, stopReason, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", clockId=").append(clockId);
-        sb.append(", taskId=").append(taskId);
-        sb.append(", sequence=").append(sequence);
-        sb.append(", clockStatus=").append(clockStatus);
-        sb.append(", stopReason=").append(stopReason);
-        sb.append(", innerInterrupt=").append(innerInterrupt);
-        sb.append(", outerInterrupt=").append(outerInterrupt);
-        sb.append(", startedAt=").append(startedAt);
-        sb.append(", completedAt=").append(completedAt);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", updatedAt=").append(updatedAt);
-        sb.append(", deleted=").append(deleted);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return "TomatoClock{" +
+                "clockId=" + clockId +
+                ", taskId=" + taskId +
+                ", sequence=" + sequence +
+                ", clockDuration=" + clockDuration +
+                ", clockStatus=" + clockStatus +
+                ", stopReason='" + stopReason + '\'' +
+                ", innerInterrupt=" + innerInterrupt +
+                ", outerInterrupt=" + outerInterrupt +
+                ", startedAt=" + startedAt +
+                ", completedAt=" + completedAt +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", deleted=" + deleted +
+                '}';
     }
 
     public TomatoClock.Status clockStatusEnum() {

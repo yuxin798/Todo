@@ -14,7 +14,7 @@ import java.util.List;
 */
 public interface TomatoClockService extends IService<TomatoClock> {
 
-    Result<List<TomatoClockVo>> addTomatoClock(Long taskId, Integer estimate);
+    Result<List<TomatoClockVo>> addTomatoClock(Long taskId);
 
     Result<?> completeTomatoClock(Long clockId);
 

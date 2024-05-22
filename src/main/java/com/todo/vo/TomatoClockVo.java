@@ -14,6 +14,7 @@ public class TomatoClockVo {
     private Long clockId;
     private Long taskId;
     private Integer sequence;
+    private Integer clockDuration;
     private Integer clockStatus;
     private String stopReason;
     private Integer innerInterrupt;
@@ -25,6 +26,7 @@ public class TomatoClockVo {
         this.clockId = tomatoClock.getClockId();
         this.taskId = tomatoClock.getTaskId();
         this.sequence = tomatoClock.getSequence();
+        this.clockDuration = tomatoClock.getClockDuration();
         this.clockStatus = tomatoClock.getClockStatus();
         this.stopReason = tomatoClock.getStopReason();
         this.innerInterrupt = tomatoClock.getInnerInterrupt();

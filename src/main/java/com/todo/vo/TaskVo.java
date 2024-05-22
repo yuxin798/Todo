@@ -17,12 +17,15 @@ public class TaskVo {
     private Long userId;
 
     private String taskName;
+    private Integer type;
     private Integer clockDuration;
     private Integer taskStatus;
     private String remark;
     private List<Integer> estimate;
     private Integer restTime;
     private Integer again;
+
+    private Integer todayTotalTimes;
 
     private String category;
     private Integer tomatoClockTimes;
@@ -36,15 +39,20 @@ public class TaskVo {
     private Date startedAt;
     private Date completedAt;
 
+    private Date createdAt;
+
+
     public TaskVo(Task task) {
         taskId = task.getTaskId();
         userId = task.getUserId();
         taskName = task.getTaskName();
+        type = task.getType();
         clockDuration = task.getClockDuration();
         remark = task.getRemark();
         estimate = ListUtil.commaSeparateStringToList(task.getEstimate(), Integer::valueOf);
         restTime = task.getRestTime();
         again = task.getAgain();
+        todayTotalTimes = task.getTodayTotalTimes();
         category = task.getCategory();
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
@@ -54,6 +62,7 @@ public class TaskVo {
         outerInterrupt = task.getOuterInterrupt();
         startedAt = task.getStartedAt();
         completedAt = task.getCompletedAt();
+        createdAt = task.getCreatedAt();
     }
 
     public void setTomatoClocks(List<TomatoClockVo> tomatoClocks) {

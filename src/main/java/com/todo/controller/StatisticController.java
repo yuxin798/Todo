@@ -6,6 +6,7 @@ import com.todo.vo.statistic.StatisticVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +30,13 @@ public class StatisticController {
     @GetMapping("/")
     public Result<StatisticVo> statistic() {
         StatisticVo statisticVo = statisticServiceImpl.statistic();
+        return Result.success(statisticVo);
+    }
+
+    @Operation(summary = "每个任务的统计数据")
+    @GetMapping("/{taskId}")
+    public Result<StatisticVo> statisticByTask(@PathVariable Long taskId) {
+        StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
         return Result.success(statisticVo);
     }
 }

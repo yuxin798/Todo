@@ -214,8 +214,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null){
             throw new RuntimeException("用户已注销");
         }
-        UserVo userVo = new UserVo(user.getUserId(), user.getUserName(), user.getAvatar(), user.getSignature());
-        return Result.success(userVo);
+        return Result.success(new UserVo(user));
     }
 
     @Override

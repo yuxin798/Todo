@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -46,9 +47,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     @Override
     public TaskVo addTask(TaskDto taskDto) {
         User user = UserContextUtil.getUser();
-        String estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
+        String estimate = "1";
+        if (taskDto.getEstimate() != null){
+            estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
+        }
+        Task task = new Task(user.getUserId(), taskDto.getTaskName(), taskDto.getType(), estimate, taskDto.getClockDuration(), DefaultGeneratorUtils.getRandomDefaultBackground(), taskDto.getRemark(), taskDto.getRestTime(), taskDto.getAgain());
 
-        Task task = new Task(user.getUserId(), taskDto.getTaskName(), estimate, taskDto.getClockDuration(), DefaultGeneratorUtils.getRandomDefaultBackground(), taskDto.getRemark(), taskDto.getRestTime(), taskDto.getAgain());
+        if (taskDto.getType() == 0 && taskDto.getClockDuration() == null){
+            task.setClockDuration(25);
+        }
 
         // 不存在分类 存放到 待办列表
         if (!StringUtils.hasText(taskDto.getCategory())){
@@ -60,7 +67,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         }
 
         baseMapper.insert(task);
-
         return findById(task.getTaskId());
     }
 
@@ -94,6 +100,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         String estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
         LambdaUpdateWrapper<Task> wrapper = new LambdaUpdateWrapper<>(Task.class)
                 .set(StringUtils.hasText(taskDto.getTaskName()), Task::getTaskName, taskDto.getTaskName())
+                .set(taskDto.getType() != null, Task::getType, taskDto.getType())
                 .set(StringUtils.hasText(estimate), Task::getEstimate, estimate)
                 .set(taskDto.getClockDuration() != null, Task::getClockDuration, taskDto.getClockDuration())
                 .set(StringUtils.hasText(taskDto.getCategory()), Task::getCategory, taskDto.getCategory())
@@ -189,16 +196,33 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             throw new RuntimeException("没有权限");
         }
 
+        if (task.getType() == 2){
+            Date now = new Date();
+            this.update(new LambdaUpdateWrapper<>(Task.class)
+                            .set(Task::getTodayTotalTimes, task.getTodayTotalTimes() + 1)
+                            .set(Task::getStartedAt, now)
+                            .set(Task::getCompletedAt, now)
+                            .eq(Task::getTaskId, taskId)
+            );
+            return Result.success();
+        }
+
+        LocalDate date = LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8"));
+        Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));
+        Date end = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"))));
+
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getTaskId, taskId);
+                .eq(TomatoClock::getTaskId, taskId)
+                .gt(TomatoClock::getStartedAt, start)
+                .lt(TomatoClock::getCompletedAt, end)
+                .orderByAsc(TomatoClock::getStartedAt);
         List<TomatoClock> tomatoClockList = tomatoClockMapper.selectList(queryWrapper);
 
         if (CollectionUtils.isEmpty(tomatoClockList)) {
             throw new RuntimeException("该任务不可能已完成");
         }
 
-        Date startedAt = tomatoClockList.get(0).getStartedAt();
-        Date completedAt;
+        TomatoClock lastTomatoClock;
 
         Optional<TomatoClock> reduce = tomatoClockList
                 .stream()
@@ -209,9 +233,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .reduce((first, second) -> second);
 
         if (reduce.isPresent()){
-            completedAt = reduce.get().getCompletedAt();
+            lastTomatoClock = reduce.get();
         }else {
             throw new RuntimeException("该任务不可能已完成");
+        }
+
+        Date completedAt = lastTomatoClock.getCompletedAt();
+
+        if (task.getType() == 1){
+            Date startedAt = task.getStartedAt();
+            LocalDateTime startTime = startedAt.toInstant().atZone(ZoneId.of("+8")).toLocalDateTime();
+            LocalDateTime endTime = completedAt.toInstant().atZone(ZoneId.of("+8")).toLocalDateTime();
+            // 计算两个LocalDateTime对象之间的时间差
+            Duration duration = Duration.between(startTime, endTime);
+            tomatoClockMapper.update(new LambdaUpdateWrapper<>(TomatoClock.class)
+                    .set(TomatoClock::getClockDuration, duration.toMinutes())
+                    .eq(TomatoClock::getClockId, lastTomatoClock.getClockId())
+            );
         }
 
         AtomicInteger innerInterrupt = new AtomicInteger(0);
@@ -229,14 +267,21 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                     outerInterrupt.addAndGet(tomatoClock.getOuterInterrupt());
                 });
 
+        Long completedTimes = tomatoClockMapper.selectCount(new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getTaskId, taskId)
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
+                .gt(TomatoClock::getStartedAt, start)
+                .lt(TomatoClock::getCompletedAt, end)
+        );
+
         this.update(new LambdaUpdateWrapper<>(Task.class)
-                .set(Task::getStartedAt, startedAt)
                 .set(Task::getCompletedAt, completedAt)
                 .set(Task::getInnerInterrupt, innerInterrupt.intValue())
                 .set(Task::getOuterInterrupt, outerInterrupt.intValue())
                 .set(Task::getTomatoClockTimes, tomatoClockTimes.intValue())
                 .set(Task::getStopTimes, stopTimes.intValue())
                 .set(Task::getTaskStatus, COMPLETED.getCode())
+                .set(Task::getTodayTotalTimes, completedTimes)
                 .eq(Task::getTaskId, taskId));
         return Result.success();
     }

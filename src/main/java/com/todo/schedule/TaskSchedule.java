@@ -25,6 +25,7 @@ public class TaskSchedule {
         // 重复任务 再次添加到 今日待办
         taskService.update(new LambdaUpdateWrapper<Task>()
                 .set(Task::getTaskStatus, 0)
+                .set(Task::getTodayTotalTimes, 0)
                 .eq(Task::getAgain, 0)
                 .in(Task::getTaskStatus, 2, 3)
                 .isNull(Task::getCategory));
@@ -32,6 +33,7 @@ public class TaskSchedule {
         //
         taskService.update(new LambdaUpdateWrapper<Task>()
                 .set(Task::getTaskStatus, 1)
+                .set(Task::getTodayTotalTimes, 0)
                 .eq(Task::getAgain, 0)
                 .in(Task::getTaskStatus, 2, 3)
                 .isNotNull(Task::getCategory));
