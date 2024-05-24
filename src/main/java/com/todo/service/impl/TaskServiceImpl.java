@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -58,12 +57,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         }
 
         // 不存在分类 存放到 待办列表
-        if (!StringUtils.hasText(taskDto.getCategory())){
+        if (taskDto.getCategoryId() == null){
             task.taskStatusEnum(TODO_TODAY);
         }else {
             // 存在分类 存放到 清单列表
             task.taskStatusEnum(CHECKLIST);
-            task.setCategory(taskDto.getCategory());
+            task.setCategoryId(taskDto.getCategoryId());
         }
 
         baseMapper.insert(task);
@@ -103,7 +102,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(taskDto.getType() != null, Task::getType, taskDto.getType())
                 .set(StringUtils.hasText(estimate), Task::getEstimate, estimate)
                 .set(taskDto.getClockDuration() != null, Task::getClockDuration, taskDto.getClockDuration())
-                .set(StringUtils.hasText(taskDto.getCategory()), Task::getCategory, taskDto.getCategory())
                 .set(taskDto.getRestTime() != null, Task::getRestTime, taskDto.getRestTime())
                 .set(taskDto.getAgain() != null, Task::getAgain, taskDto.getAgain())
                 .set(StringUtils.hasText(taskDto.getRemark()), Task::getRemark, taskDto.getRemark())
@@ -286,30 +284,30 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         return Result.success();
     }
 
-    @Override
-    public Result<List<TaskVo>> findByCategory(String category) {
-        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
-                .in(Task::getTaskStatus, CHECKLIST.getCode(), COMPLETED.getCode())
-                .eq(Task::getCategory, category);
-        return Result.success(
-                baseMapper.selectList(wrapper)
-                        .stream()
-                        .map(TaskVo::new)
-                        .peek(taskVo -> {
-                            LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
-                                    .eq(TomatoClock::getTaskId, taskVo.getTaskId());
-                            List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
-                                    .selectList(w)
-                                    .stream()
-                                    .map(TomatoClockVo::new)
-                                    .toList();
-                            taskVo.setTomatoClocks(tomatoClockVoList);
-                        })
-                        .toList()
-        );
-    }
-
+//    @Override
+//    public Result<List<TaskVo>> findByCategory(String category) {
+//        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
+//                .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
+//                .in(Task::getTaskStatus, CHECKLIST.getCode(), COMPLETED.getCode())
+//                .eq(Task::getCategory, category);
+//        return Result.success(
+//                baseMapper.selectList(wrapper)
+//                        .stream()
+//                        .map(TaskVo::new)
+//                        .peek(taskVo -> {
+//                            LambdaQueryWrapper<TomatoClock> w = new LambdaQueryWrapper<>(TomatoClock.class)
+//                                    .eq(TomatoClock::getTaskId, taskVo.getTaskId());
+//                            List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
+//                                    .selectList(w)
+//                                    .stream()
+//                                    .map(TomatoClockVo::new)
+//                                    .toList();
+//                            taskVo.setTomatoClocks(tomatoClockVoList);
+//                        })
+//                        .toList()
+//        );
+//    }
+//
     @Override
     public Result<List<TaskVo>> findByDay(Long timestamp) {
         LocalDate date = LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("UTC+8"));
@@ -339,24 +337,24 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                         .toList()
         );
     }
-
-    @Override
-    public Result<Map<String, List<TaskVo>>> allByCategory() {
-        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
-                .in(Task::getTaskStatus, 1, 2)
-                .isNotNull(Task::getCategory)
-                .orderByAsc(Task::getCreatedAt);
-
-        Map<String, List<TaskVo>> map = baseMapper.selectList(queryWrapper)
-                .stream()
-                .map(TaskVo::new)
-                .collect(Collectors.groupingBy(
-                        TaskVo::getCategory,
-                        HashMap::new,
-                        Collectors.toList()));
-        return Result.success(map);
-    }
+//
+//    @Override
+//    public Result<Map<String, List<TaskVo>>> allByCategory() {
+//        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
+//                .eq(Task::getUserId, UserContextUtil.getUser().getUserId())
+//                .in(Task::getTaskStatus, 1, 2)
+//                .isNotNull(Task::getCategory)
+//                .orderByAsc(Task::getCreatedAt);
+//
+//        Map<String, List<TaskVo>> map = baseMapper.selectList(queryWrapper)
+//                .stream()
+//                .map(TaskVo::new)
+//                .collect(Collectors.groupingBy(
+//                        TaskVo::getCategory,
+//                        HashMap::new,
+//                        Collectors.toList()));
+//        return Result.success(map);
+//    }
 }
 
 

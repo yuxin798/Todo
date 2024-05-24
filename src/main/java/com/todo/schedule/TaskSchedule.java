@@ -28,7 +28,7 @@ public class TaskSchedule {
                 .set(Task::getTodayTotalTimes, 0)
                 .eq(Task::getAgain, 0)
                 .in(Task::getTaskStatus, 2, 3)
-                .isNull(Task::getCategory));
+                .isNull(Task::getCategoryId));
 
         //
         taskService.update(new LambdaUpdateWrapper<Task>()
@@ -36,6 +36,6 @@ public class TaskSchedule {
                 .set(Task::getTodayTotalTimes, 0)
                 .eq(Task::getAgain, 0)
                 .in(Task::getTaskStatus, 2, 3)
-                .isNotNull(Task::getCategory));
+                .isNotNull(Task::getCategoryId));
     }
 }

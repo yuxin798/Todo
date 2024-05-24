@@ -1,12 +1,13 @@
 package com.todo.dto;
 
-import com.todo.constraints.ValidName;
 import com.todo.entity.TomatoClock;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.min;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
@@ -44,7 +45,7 @@ public class TaskDto {
     @Range(min = 0, max = 1, message = "第二天是否再次显示只能为0或1", groups = {AddTask.class, UpdateTask.class})
     private Integer again;
 
-    private String category;
+    private Long categoryId;
 
     @Min(value = 1, message = "番茄钟数最小值为1", groups = UpdateTask.class)
     private Integer tomatoClockTimes;

@@ -1,5 +1,6 @@
 server:
   port: 80
+ip: 8.130.163.41
 spring:
   application:
     name: Todo-Application
@@ -7,14 +8,15 @@ spring:
     url: jdbc:mysql://8.130.17.7:3307/todo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-    password: 123456
+#    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
+    password: 552010.a
     type: com.alibaba.druid.pool.DruidDataSource
   data:
     redis:
-      host: 8.130.17.7
+      host: ${ip}
       port: 6379
       database: 0
-      password: 147258369
+      password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
       timeout: 30000s
       lettuce:
         pool:
@@ -44,10 +46,10 @@ spring:
     protocol: smtp
     port: 465
   rabbitmq:
-    addresses: 8.130.17.7
+    addresses: ${ip}
     port: 5672
     username: guest
-    password: guest
+    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
     listener:
       direct:
         retry:
@@ -76,7 +78,7 @@ mybatis-plus:
 
 todo:
   minio:
-    endpoint: http://8.130.17.7:9000
+    endpoint: http://${ip}:9000
     access-key: minioadmin
     secret-key: minioadmin
     bucket: todo-bucket

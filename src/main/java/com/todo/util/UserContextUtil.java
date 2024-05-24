@@ -10,4 +10,12 @@ public class UserContextUtil {
                 .getAuthentication()
                 .getPrincipal();
     }
+
+    public static Long getUserId(){
+        User user = (User) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        return user.getUserId();
+    }
 }

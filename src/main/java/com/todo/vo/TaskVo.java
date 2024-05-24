@@ -27,7 +27,7 @@ public class TaskVo {
 
     private Integer todayTotalTimes;
 
-    private String category;
+    private Long categoryId;
     private Integer tomatoClockTimes;
     private List<TomatoClockVo> tomatoClocks;
     private Integer stopTimes;
@@ -53,7 +53,7 @@ public class TaskVo {
         restTime = task.getRestTime();
         again = task.getAgain();
         todayTotalTimes = task.getTodayTotalTimes();
-        category = task.getCategory();
+        categoryId = task.getCategoryId();
         tomatoClockTimes = task.getTomatoClockTimes();
         stopTimes = task.getStopTimes();
         taskStatus = task.getTaskStatus();

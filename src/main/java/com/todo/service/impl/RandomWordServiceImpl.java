@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -35,6 +35,8 @@ public class RandomWordServiceImpl extends ServiceImpl<RandomWordMapper, RandomW
                 .map(RandomWord::getWord)
                 .collect(Collectors.toSet());
 
+        Set<String> beforeWords = new HashSet<>(words);
+
         for (int i = 0; i < times; i++){
             Call call = client.newCall(request);
             try (Response response = call.execute()) {
@@ -48,6 +50,8 @@ public class RandomWordServiceImpl extends ServiceImpl<RandomWordMapper, RandomW
                 throw new RuntimeException(e);
             }
         }
+        // 求差集
+        words.removeAll(beforeWords);
         return Result.success("新增" + words.size() + "条数据   " + words);
     }
 

@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
-
 /**
  * 数据统计接口
  */
@@ -39,4 +37,11 @@ public class StatisticController {
         StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
         return Result.success(statisticVo);
     }
+
+//    @Operation(summary = "每个任务的专注历史记录")
+//    @GetMapping("/history/{taskId}")
+//    public Result<StatisticVo> statisticByHistory(@PathVariable Long taskId) {
+//        StatisticVo statisticVo = statisticServiceImpl.statisticByHistory(taskId);
+//        return Result.success(statisticVo);
+//    }
 }
