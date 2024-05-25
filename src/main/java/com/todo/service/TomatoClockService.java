@@ -19,10 +19,6 @@ public interface TomatoClockService extends IService<TomatoClock> {
 
     Result<?> completeTomatoClock(Long clockId);
 
-    Result<?> innerInterrupt(Long clockId);
-
-    Result<?> outerInterrupt(Long clockId);
-
     Result<?> stopTomatoClock(Long taskId, String stopReason);
 
     Result<TomatoClockVo> findTomatoClock(Long clockId);

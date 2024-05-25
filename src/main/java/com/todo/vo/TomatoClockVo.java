@@ -18,8 +18,6 @@ public class TomatoClockVo {
     private Integer clockDuration;
     private Integer clockStatus;
     private String stopReason;
-    private Integer innerInterrupt;
-    private Integer outerInterrupt;
     private Date startedAt;
     private Date completedAt;
 
@@ -31,8 +29,6 @@ public class TomatoClockVo {
         this.clockDuration = tomatoClock.getClockDuration();
         this.clockStatus = tomatoClock.getClockStatus();
         this.stopReason = tomatoClock.getStopReason();
-        this.innerInterrupt = tomatoClock.getInnerInterrupt();
-        this.outerInterrupt = tomatoClock.getOuterInterrupt();
         this.startedAt = tomatoClock.getStartedAt();
         this.completedAt = tomatoClock.getCompletedAt();
     }

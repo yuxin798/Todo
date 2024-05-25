@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -17,6 +19,8 @@ import java.util.Objects;
  */
 @TableName(value ="tomato_clock")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TomatoClock implements Serializable {
     /**
      * 
@@ -55,22 +59,10 @@ public class TomatoClock implements Serializable {
     private Integer clockStatus;
 
     /**
-     * 
+     *
      */
     @TableField(value = "stop_reason")
     private String stopReason;
-
-    /**
-     * 
-     */
-    @TableField(value = "inner_interrupt")
-    private Integer innerInterrupt;
-
-    /**
-     * 
-     */
-    @TableField(value = "outer_interrupt")
-    private Integer outerInterrupt;
 
     /**
      * 
@@ -117,7 +109,7 @@ public class TomatoClock implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TomatoClock that = (TomatoClock) o;
-        return Objects.equals(clockId, that.clockId) && Objects.equals(taskId, that.taskId) && Objects.equals(parentId, that.parentId) && Objects.equals(sequence, that.sequence) && Objects.equals(clockDuration, that.clockDuration) && Objects.equals(clockStatus, that.clockStatus) && Objects.equals(stopReason, that.stopReason) && Objects.equals(innerInterrupt, that.innerInterrupt) && Objects.equals(outerInterrupt, that.outerInterrupt) && Objects.equals(startedAt, that.startedAt) && Objects.equals(completedAt, that.completedAt) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(deleted, that.deleted);
+        return Objects.equals(clockId, that.clockId) && Objects.equals(taskId, that.taskId) && Objects.equals(parentId, that.parentId) && Objects.equals(sequence, that.sequence) && Objects.equals(clockDuration, that.clockDuration) && Objects.equals(clockStatus, that.clockStatus) && Objects.equals(stopReason, that.stopReason) && Objects.equals(startedAt, that.startedAt) && Objects.equals(completedAt, that.completedAt) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(deleted, that.deleted);
     }
 
     @Override
@@ -130,8 +122,6 @@ public class TomatoClock implements Serializable {
                 ", clockDuration=" + clockDuration +
                 ", clockStatus=" + clockStatus +
                 ", stopReason='" + stopReason + '\'' +
-                ", innerInterrupt=" + innerInterrupt +
-                ", outerInterrupt=" + outerInterrupt +
                 ", startedAt=" + startedAt +
                 ", completedAt=" + completedAt +
                 ", createdAt=" + createdAt +
@@ -142,7 +132,7 @@ public class TomatoClock implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(clockId, taskId, parentId, sequence, clockDuration, clockStatus, stopReason, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
+        return Objects.hash(clockId, taskId, parentId, sequence, clockDuration, clockStatus, stopReason, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
     public TomatoClock.Status clockStatusEnum() {

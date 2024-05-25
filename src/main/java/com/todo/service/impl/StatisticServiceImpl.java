@@ -87,10 +87,15 @@ public class StatisticServiceImpl implements StatisticService {
         }
 
         Task task = taskServiceImpl.getById(taskId);
-        taskIdNameMap.put(taskId, task.getTaskName());
+        Long parentId = task.getParentId();
+        List<Task> tasks = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getParentId, parentId)
+        );
+        tasks.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
+
         List<TomatoClock> tomatoClocks = tomatoClockService.list(
                 new LambdaQueryWrapper<>(TomatoClock.class)
-                        .eq(TomatoClock::getTaskId, taskId)
+                        .eq(TomatoClock::getParentId, task.getParentId())
         );
         StatisticVo statisticVo = getStatisticVo(tomatoClocks);
 

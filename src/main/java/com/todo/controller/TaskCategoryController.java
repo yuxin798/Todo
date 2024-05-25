@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/category")
 public class TaskCategoryController {
 
-    private TaskCategoryService taskCategoryService;
+    private final TaskCategoryService taskCategoryService;
 
     public TaskCategoryController(TaskCategoryService taskCategoryService) {
         this.taskCategoryService = taskCategoryService;

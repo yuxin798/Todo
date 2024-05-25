@@ -97,18 +97,6 @@ public class Task implements Serializable {
     /**
      * 
      */
-    @TableField(value = "tomato_clock_times")
-    private Integer tomatoClockTimes;
-
-    /**
-     * 
-     */
-    @TableField(value = "stop_times")
-    private Integer stopTimes;
-
-    /**
-     * 
-     */
     @TableField(value = "task_status")
     private Integer taskStatus;
 
@@ -117,18 +105,6 @@ public class Task implements Serializable {
      */
     @TableField(value = "background")
     private String background;
-
-    /**
-     * 
-     */
-    @TableField(value = "inner_interrupt")
-    private Integer innerInterrupt;
-
-    /**
-     * 
-     */
-    @TableField(value = "outer_interrupt")
-    private Integer outerInterrupt;
 
     /**
      * 
@@ -174,11 +150,7 @@ public class Task implements Serializable {
         this.again = again;
         this.restTime = restTime;
 
-        this.setTomatoClockTimes(0);
-        this.setStopTimes(0);
         this.taskStatusEnum(Status.CHECKLIST);
-        this.setInnerInterrupt(0);
-        this.setOuterInterrupt(0);
     }
 
     @Override
@@ -186,7 +158,12 @@ public class Task implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return Objects.equals(taskId, task.taskId) && Objects.equals(userId, task.userId) && Objects.equals(taskName, task.taskName) && Objects.equals(type, task.type) && Objects.equals(clockDuration, task.clockDuration) && Objects.equals(remark, task.remark) && Objects.equals(estimate, task.estimate) && Objects.equals(restTime, task.restTime) && Objects.equals(again, task.again) && Objects.equals(categoryId, task.categoryId) && Objects.equals(todayTotalTimes, task.todayTotalTimes) && Objects.equals(tomatoClockTimes, task.tomatoClockTimes) && Objects.equals(stopTimes, task.stopTimes) && Objects.equals(taskStatus, task.taskStatus) && Objects.equals(background, task.background) && Objects.equals(innerInterrupt, task.innerInterrupt) && Objects.equals(outerInterrupt, task.outerInterrupt) && Objects.equals(startedAt, task.startedAt) && Objects.equals(completedAt, task.completedAt) && Objects.equals(createdAt, task.createdAt) && Objects.equals(updatedAt, task.updatedAt) && Objects.equals(deleted, task.deleted);
+        return Objects.equals(taskId, task.taskId) && Objects.equals(userId, task.userId) && Objects.equals(parentId, task.parentId) && Objects.equals(taskName, task.taskName) && Objects.equals(type, task.type) && Objects.equals(clockDuration, task.clockDuration) && Objects.equals(remark, task.remark) && Objects.equals(estimate, task.estimate) && Objects.equals(restTime, task.restTime) && Objects.equals(again, task.again) && Objects.equals(categoryId, task.categoryId) && Objects.equals(todayTotalTimes, task.todayTotalTimes) && Objects.equals(taskStatus, task.taskStatus) && Objects.equals(background, task.background) && Objects.equals(startedAt, task.startedAt) && Objects.equals(completedAt, task.completedAt) && Objects.equals(createdAt, task.createdAt) && Objects.equals(updatedAt, task.updatedAt) && Objects.equals(deleted, task.deleted);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskId, userId, parentId, taskName, type, clockDuration, remark, estimate, restTime, again, categoryId, todayTotalTimes, taskStatus, background, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
     @Override
@@ -203,23 +180,14 @@ public class Task implements Serializable {
                 ", again=" + again +
                 ", categoryId=" + categoryId +
                 ", todayTotalTimes=" + todayTotalTimes +
-                ", tomatoClockTimes=" + tomatoClockTimes +
-                ", stopTimes=" + stopTimes +
                 ", taskStatus=" + taskStatus +
                 ", background='" + background + '\'' +
-                ", innerInterrupt=" + innerInterrupt +
-                ", outerInterrupt=" + outerInterrupt +
                 ", startedAt=" + startedAt +
                 ", completedAt=" + completedAt +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", deleted=" + deleted +
                 '}';
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(taskId, userId, taskName, type, clockDuration, remark, estimate, restTime, again, categoryId, todayTotalTimes, tomatoClockTimes, stopTimes, taskStatus, background, innerInterrupt, outerInterrupt, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
     public Task.Status taskStatusEnum() {

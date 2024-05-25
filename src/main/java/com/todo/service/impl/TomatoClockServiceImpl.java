@@ -100,7 +100,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         Task task = taskMapper.selectById(taskId);
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getParentId, task.getParentId())
-                .eq(TomatoClock::getClockStatus, COMPLETED.getCode());
+                .in(TomatoClock::getClockStatus, COMPLETED.getCode(), TERMINATED.getCode());
         Map<Long, List<TomatoClockVo>> statistic = this.list(queryWrapper)
                 .stream()
                 .map(TomatoClockVo::new)
@@ -148,36 +148,6 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     @Override
-    public Result<?> innerInterrupt(Long clockId) {
-        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
-
-        // 断言番茄钟的状态为已开始
-        assertStatus(clockStatus, DOING);
-
-        LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getInnerInterrupt, 1 + tomatoClock.getInnerInterrupt())
-                .eq(TomatoClock::getClockId, clockId);
-        update(updateWrapper);
-        return Result.success();
-    }
-
-    @Override
-    public Result<?> outerInterrupt(Long clockId) {
-        TomatoClock tomatoClock = dataVerificationAndAuthenticationByClockId(clockId);
-        TomatoClock.Status clockStatus = tomatoClock.clockStatusEnum();
-
-        // 断言番茄钟的状态为已开始
-        assertStatus(clockStatus, DOING);
-
-        LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getOuterInterrupt, 1 + tomatoClock.getOuterInterrupt())
-                .eq(TomatoClock::getClockId, clockId);
-        update(updateWrapper);
-        return Result.success();
-    }
-
-    @Override
     public Result<?> stopTomatoClock(Long taskId, String stopReason) {
         dataVerificationAndAuthenticationByTaskId(taskId);
 
@@ -186,12 +156,13 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                 .set(stopReason != null, TomatoClock::getStopReason, stopReason)
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getTaskId, taskId)
-                .and(wrapper -> wrapper
-                        .eq(TomatoClock::getClockStatus, DOING.getCode())
-                        .or()
-                        .eq(TomatoClock::getClockStatus, NOT_STARTED.getCode()));
-
+                .eq(TomatoClock::getClockStatus, DOING.getCode());
         this.update(updateWrapper);
+
+        this.remove(new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getClockStatus, NOT_STARTED.getCode())
+                .eq(TomatoClock::getTaskId, taskId)
+        );
         return Result.success();
     }
 

@@ -16,7 +16,6 @@ public class TaskVo {
     private Long taskId;
     private Long parentId;
     private Long userId;
-
     private String taskName;
     private Integer type;
     private Integer clockDuration;
@@ -25,21 +24,11 @@ public class TaskVo {
     private List<Integer> estimate;
     private Integer restTime;
     private Integer again;
-
     private Integer todayTotalTimes;
-
     private Long categoryId;
-    private Integer tomatoClockTimes;
-    private List<TomatoClockVo> tomatoClocks;
-    private Integer stopTimes;
-
     private String background;
-    private Integer innerInterrupt;
-    private Integer outerInterrupt;
-
     private Date startedAt;
     private Date completedAt;
-
     private Date createdAt;
 
 
@@ -56,19 +45,10 @@ public class TaskVo {
         again = task.getAgain();
         todayTotalTimes = task.getTodayTotalTimes();
         categoryId = task.getCategoryId();
-        tomatoClockTimes = task.getTomatoClockTimes();
-        stopTimes = task.getStopTimes();
         taskStatus = task.getTaskStatus();
         background = task.getBackground();
-        innerInterrupt = task.getInnerInterrupt();
-        outerInterrupt = task.getOuterInterrupt();
         startedAt = task.getStartedAt();
         completedAt = task.getCompletedAt();
         createdAt = task.getCreatedAt();
     }
-
-    public void setTomatoClocks(List<TomatoClockVo> tomatoClocks) {
-        this.tomatoClocks = tomatoClocks;
-    }
-
 }
