@@ -1,5 +1,6 @@
 package com.todo;
 
+import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;
@@ -67,5 +68,14 @@ public class DateTest {
         System.out.println(Clock.system(ZoneId.of("+8")).millis());
         System.out.println(Clock.systemDefaultZone().millis());
         System.out.println(Clock.fixed(Instant.now(), ZoneId.of("+8")).millis());
+    }
+
+    @Test
+    void generator() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(DefaultIdentifierGenerator.getInstance().nextId(null));
+        }
+
+
     }
 }

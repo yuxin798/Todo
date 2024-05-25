@@ -37,11 +37,4 @@ public class StatisticController {
         StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
         return Result.success(statisticVo);
     }
-
-//    @Operation(summary = "每个任务的专注历史记录")
-//    @GetMapping("/history/{taskId}")
-//    public Result<StatisticVo> statisticByHistory(@PathVariable Long taskId) {
-//        StatisticVo statisticVo = statisticServiceImpl.statisticByHistory(taskId);
-//        return Result.success(statisticVo);
-//    }
 }

@@ -1,6 +1,7 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.dto.TaskCategoryDto;
@@ -87,13 +88,16 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
     }
 
     @Override
-    public Result<?> updateTaskCategory(TaskCategoryDto taskCategoryDto) {
+    public Result<TaskCategoryVo> updateTaskCategory(TaskCategoryDto taskCategoryDto) {
         LambdaUpdateWrapper<TaskCategory> updateWrapper = new LambdaUpdateWrapper<>(TaskCategory.class)
                 .set(StringUtils.hasText(taskCategoryDto.getCategoryName()), TaskCategory::getCategoryName, taskCategoryDto.getCategoryName())
                 .set(taskCategoryDto.getColor() != null, TaskCategory::getColor, taskCategoryDto.getColor())
                 .eq(TaskCategory::getCategoryId, taskCategoryDto.getCategoryId());
         this.update(updateWrapper);
-        return Result.success();
+        TaskCategory taskCategory = this.getOne(new LambdaQueryWrapper<>(TaskCategory.class)
+                .eq(TaskCategory::getCategoryId, taskCategoryDto.getCategoryId())
+        );
+        return Result.success(new TaskCategoryVo(taskCategory));
     }
 
     @Override

@@ -3,12 +3,15 @@ package com.todo.controller;
 import com.todo.service.TomatoClockService;
 import com.todo.vo.Result;
 import com.todo.vo.TomatoClockVo;
+import com.todo.vo.statistic.StatisticVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "番茄钟API")
 @RestController
@@ -74,5 +77,11 @@ public class TomatoClockController {
     @DeleteMapping("/deleteTomatoClock/{taskId}")
     public Result<?> deleteTomatoClock(@PathVariable Long taskId) {
         return tomatoClockService.deleteTomatoClock(taskId);
+    }
+
+    @Operation(summary = "每个任务的专注历史记录")
+    @GetMapping("/{taskId}")
+    public Result<Map<Long, List<TomatoClockVo>>> statisticByHistory(@PathVariable Long taskId) {
+        return tomatoClockService.statisticByHistory(taskId);
     }
 }

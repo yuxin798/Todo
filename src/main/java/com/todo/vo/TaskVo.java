@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TaskVo {
     private Long taskId;
+    private Long parentId;
     private Long userId;
 
     private String taskName;
@@ -44,6 +45,7 @@ public class TaskVo {
 
     public TaskVo(Task task) {
         taskId = task.getTaskId();
+        parentId = task.getParentId();
         userId = task.getUserId();
         taskName = task.getTaskName();
         type = task.getType();

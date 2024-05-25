@@ -6,6 +6,7 @@ import com.todo.vo.Result;
 import com.todo.vo.TomatoClockVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author 28080
@@ -31,4 +32,6 @@ public interface TomatoClockService extends IService<TomatoClock> {
     Result<?> deleteTomatoClock(Long taskId);
 
     Result<?> startTomatoClock(Long clockId);
+
+    Result<Map<Long, List<TomatoClockVo>>> statisticByHistory(Long taskId);
 }

@@ -32,9 +32,6 @@ public interface TaskService extends IService<Task> {
 
     Result<?> complete(Long taskId);
 
-//    Result<List<TaskVo>> findByCategory(String category);
-//
     Result<List<TaskVo>> findByDay(Long timestamp);
-//
-//    Result<Map<String, List<TaskVo>>> allByCategory();
+
 }

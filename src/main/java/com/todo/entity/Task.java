@@ -35,6 +35,12 @@ public class Task implements Serializable {
     private Long userId;
 
     /**
+     *
+     */
+    @TableField(value = "parent_id")
+    private Long parentId;
+
+    /**
      * 
      */
     @TableField(value = "task_name")

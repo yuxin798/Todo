@@ -16,7 +16,7 @@ public interface TaskCategoryService extends IService<TaskCategory> {
 
     Result<?> deleteTaskCategory(Long categoryId);
 
-    Result<?> updateTaskCategory(TaskCategoryDto taskCategoryDto);
+    Result<TaskCategoryVo> updateTaskCategory(TaskCategoryDto taskCategoryDto);
 
     Result<List<TaskCategoryVo>> getAll();
 

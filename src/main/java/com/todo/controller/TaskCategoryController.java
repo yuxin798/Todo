@@ -1,6 +1,7 @@
 package com.todo.controller;
 
 import com.todo.dto.TaskCategoryDto;
+import com.todo.entity.TaskCategory;
 import com.todo.service.TaskCategoryService;
 import com.todo.vo.Result;
 import com.todo.vo.TaskCategoryVo;
@@ -37,7 +38,7 @@ public class TaskCategoryController {
 
     @Operation(summary = "修改清单分类")
     @PutMapping("/")
-    public Result<?> updateTaskCategory(@RequestBody @Validated(TaskCategoryDto.UpdateTaskCategory.class) TaskCategoryDto taskCategoryDto){
+    public Result<TaskCategoryVo> updateTaskCategory(@RequestBody @Validated(TaskCategoryDto.UpdateTaskCategory.class) TaskCategoryDto taskCategoryDto){
         return taskCategoryService.updateTaskCategory(taskCategoryDto);
     }
 

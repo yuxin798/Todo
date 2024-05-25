@@ -1,5 +1,7 @@
 package com.todo.util;
 
+import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -11,7 +13,7 @@ public class DefaultGeneratorUtils {
     static {
         defaultAvatars = new ArrayList<>();
         for (int i = 1; i <= 19; i++) {
-            defaultAvatars.add("http://8.130.17.7:9000/todo-bucket/user_default_avatar/random_avator" + i + ".png");
+            defaultAvatars.add("http://8.130.163.41:9000/todo-bucket/user_default_avatar/random_avator" + i + ".png");
         }
     }
     static {
@@ -26,7 +28,7 @@ public class DefaultGeneratorUtils {
     static {
         defaultBackgrounds = new ArrayList<>();
         for (int i = 1; i <= 556; i++) {
-            defaultBackgrounds.add("http://8.130.17.7:9000/todo-bucket/background/" + i + ".jpg");
+            defaultBackgrounds.add("http://8.130.163.41:9000/todo-bucket/background/" + i + ".jpg");
         }
     }
 
@@ -58,5 +60,12 @@ public class DefaultGeneratorUtils {
         Random random = new Random();
         int randomNumber = random.nextInt(size);
         return defaultBackgrounds.get(randomNumber);
+    }
+
+    /**
+     * 生成随机任务背景图片
+     */
+    public static Long nextId() {
+        return DefaultIdentifierGenerator.getInstance().nextId(null);
     }
 }

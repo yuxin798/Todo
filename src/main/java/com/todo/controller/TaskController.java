@@ -81,23 +81,9 @@ public class TaskController {
         return taskService.findByDay(timestamp);
     }
 
-//    @Operation(summary = "查询一个类别的任务")
-//    @GetMapping("/findByCategory/{category}")
-//    public Result<List<TaskVo>> findByCategory(@PathVariable String category) {
-//        return taskService.findByCategory(category);
-//    }
-
-//    @Operation(summary = "查询某个人所有类别的任务")
-//    @GetMapping("/allByCategory")
-//    public Result<Map<String, List<TaskVo>>> allByCategory() {
-//        return taskService.allByCategory();
-//    }
-//
-
-//
-//    @Operation(summary = "完成任务，同步番茄钟与任务数据")
-//    @PutMapping("/complete/{taskId}")
-//    public Result<?> complete(@PathVariable Long taskId) {
-//        return taskService.complete(taskId);
-//    }
+    @Operation(summary = "完成任务，同步番茄钟与任务数据")
+    @PutMapping("/complete/{taskId}")
+    public Result<?> complete(@PathVariable Long taskId) {
+        return taskService.complete(taskId);
+    }
 }
