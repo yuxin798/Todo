@@ -43,7 +43,19 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     }
 
     @Override
-    public TaskVo   addTask(TaskDto taskDto) {
+    public TaskVo addTask(TaskDto taskDto) {
+        // 查看 该任务名字是否重复
+        Task dbTask = this.getOne(new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .eq(Task::getTaskName, taskDto.getTaskName())
+                .ge(Task::getCreatedAt, DateUtil.todayMinTime())
+                .le(Task::getCreatedAt, DateUtil.todayMaxTime())
+        );
+
+        if (dbTask != null){
+            throw new RuntimeException("任务名称不能重复");
+        }
+
         String estimate = "1";
         if (!CollectionUtils.isEmpty(taskDto.getEstimate())){
             estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
@@ -71,8 +83,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         baseMapper.insert(task);
         Long taskId = task.getTaskId();
 
-        //如果循环 同时插入明天的任务
-        if (taskDto.getAgain() == 0){
+        //如果循环 并且 当前时间 在定时任务完成之后 则同时插入明天的任务
+        if (taskDto.getAgain() == 0 && LocalTime.now().isAfter(LocalTime.of(3, 30))){
             task.setCreatedAt(Date.from(now.plusDays(1).atZone(ZoneId.of("+8")).toInstant()));
             task.setTaskId(null);
             baseMapper.insert(task);

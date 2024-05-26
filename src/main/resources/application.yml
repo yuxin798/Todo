@@ -5,11 +5,11 @@ spring:
   application:
     name: Todo-Application
   datasource:
-    url: jdbc:mysql://8.130.17.7:3307/todo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${ip}:3307/todo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-#    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
-    password: 552010.a
+    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
+#    password: 552010.a
     type: com.alibaba.druid.pool.DruidDataSource
   data:
     redis:
