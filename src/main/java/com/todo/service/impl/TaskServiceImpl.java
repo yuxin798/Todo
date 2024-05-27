@@ -21,8 +21,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.todo.entity.Task.Status.*;
 
@@ -44,18 +46,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
     @Override
     public TaskVo addTask(TaskDto taskDto) {
-        // 查看 该任务名字是否重复
-        Task dbTask = this.getOne(new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUserId())
-                .eq(Task::getTaskName, taskDto.getTaskName())
-                .ge(Task::getCreatedAt, DateUtil.todayMinTime())
-                .le(Task::getCreatedAt, DateUtil.todayMaxTime())
-        );
-
-        if (dbTask != null){
-            throw new RuntimeException("任务名称不能重复");
-        }
-
         String estimate = "1";
         if (!CollectionUtils.isEmpty(taskDto.getEstimate())){
             estimate = StringUtils.collectionToCommaDelimitedString(taskDto.getEstimate());
@@ -300,6 +290,34 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                         .map(TaskVo::new)
                         .toList()
         );
+    }
+
+    @Override
+    public Result<Map<Long, List<TaskVo>>> getTaskDay() {
+        LocalDateTime now = LocalDateTime.now();
+        // 本月第一天0时0分
+        LocalDateTime firstDayOfMonth = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
+        // 本月最后一天23：59：59
+        LocalDateTime lastDayOfMonth = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.lastDayOfMonth())), LocalTime.MAX);
+
+        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .ge(Task::getCreatedAt, firstDayOfMonth)
+                .le(Task::getCreatedAt, lastDayOfMonth);
+
+        Map<Long, List<TaskVo>> result = this.list(queryWrapper)
+                .stream()
+                .map(TaskVo::new)
+                .collect(Collectors.groupingBy(
+                        // 获取某一天的时间戳，并通过这个分组
+                        t -> 1000 * LocalDate.ofInstant(t.getCreatedAt().toInstant(), ZoneId.of("UTC+8"))
+                                .atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
+                ));
+
+        // 删除明天的
+        result.remove(DateUtil.tomorrowMinTime().getTime());
+
+        return Result.success(result);
     }
 }
 

@@ -86,4 +86,11 @@ public class TaskController {
     public Result<?> complete(@PathVariable Long taskId) {
         return taskService.complete(taskId);
     }
+
+    @Operation(summary = "查询一个月哪天存在任务")
+    @GetMapping("/getTaskDay")
+    public Result<Map<Long, List<TaskVo>>> getTaskDay() {
+        return taskService.getTaskDay();
+    }
+
 }

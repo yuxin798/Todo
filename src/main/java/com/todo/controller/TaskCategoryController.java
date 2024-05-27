@@ -53,5 +53,4 @@ public class TaskCategoryController {
     public Result<List<TaskVo>> getAllTasks(@PathVariable Long categoryId){
         return taskCategoryService.getAllTasks(categoryId);
     }
-
 }

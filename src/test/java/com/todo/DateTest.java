@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -75,7 +76,17 @@ public class DateTest {
         for (int i = 0; i < 100; i++) {
             System.out.println(DefaultIdentifierGenerator.getInstance().nextId(null));
         }
+    }
 
+    @Test
+    void LocalDateTimeTest() {
+        LocalDateTime now = LocalDateTime.now();
+        // 本月第一天0时0分
+        LocalDateTime firstDay = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
+        // 本月最后一天23：59：59
+        LocalDateTime lastDay = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.lastDayOfMonth())), LocalTime.MAX);
 
+        System.out.println("本月第一天0时0分" + firstDay);
+        System.out.println("本月最后一天23：59：59" + lastDay);
     }
 }

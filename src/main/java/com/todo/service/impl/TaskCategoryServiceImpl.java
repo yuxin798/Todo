@@ -13,6 +13,7 @@ import com.todo.mapper.TaskMapper;
 import com.todo.mapper.TomatoClockMapper;
 import com.todo.service.TaskCategoryService;
 import com.todo.service.TaskService;
+import com.todo.util.DateUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskCategoryVo;
@@ -21,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -103,7 +106,8 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
     @Override
     public Result<List<TaskCategoryVo>> getAll() {
         LambdaQueryWrapper<TaskCategory> queryWrapper = new LambdaQueryWrapper<>(TaskCategory.class)
-                .eq(TaskCategory::getUserId, UserContextUtil.getUserId());
+                .eq(TaskCategory::getUserId, UserContextUtil.getUserId())
+                .orderByAsc(TaskCategory::getCreatedAt);
         List<TaskCategoryVo> taskCategoryVos = this.list(queryWrapper)
                 .stream()
                 .map(TaskCategoryVo::new)
@@ -111,11 +115,39 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
         return Result.success(taskCategoryVos);
     }
 
+    public Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks() {
+        LambdaQueryWrapper<TaskCategory> categoryQueryWrapper = new LambdaQueryWrapper<>(TaskCategory.class)
+                .eq(TaskCategory::getUserId, UserContextUtil.getUserId());
+        Map<Long, TaskCategoryVo> taskCategoryVoMap = this.list(categoryQueryWrapper)
+                .stream()
+                .map(TaskCategoryVo::new)
+                .collect(Collectors.toMap(
+                        TaskCategoryVo::getCategoryId, taskCategoryVo -> taskCategoryVo)
+                );
+
+        LambdaQueryWrapper<Task> taskQueryWrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUserId());
+        Map<Long, List<TaskVo>> taskVos = taskMapper.selectList(taskQueryWrapper)
+                .stream()
+                .map(TaskVo::new)
+                .collect(Collectors.groupingBy(TaskVo::getCategoryId));
+
+        Map<TaskCategoryVo, List<TaskVo>> result = taskVos.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> taskCategoryVoMap.get(entry.getKey()), Map.Entry::getValue)
+                );
+        return Result.success(result);
+    }
+
     @Override
     public Result<List<TaskVo>> getAllTasks(Long categoryId) {
         LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getCategoryId, categoryId)
-                .eq(Task::getUserId, UserContextUtil.getUserId());
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .ge(Task::getCreatedAt, DateUtil.todayMinTime())
+                .le(Task::getCreatedAt, DateUtil.todayMaxTime())
+                .orderByAsc(Task::getCreatedAt);
         List<TaskVo> taskVos = taskMapper.selectList(queryWrapper)
                 .stream()
                 .map(TaskVo::new)

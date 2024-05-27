@@ -43,13 +43,16 @@ public class TaskSchedule {
                 .le(Task::getCreatedAt, end)
                 .eq(Task::getAgain, 0);
 
-        long tomorrow = new Date(now).getTime() + 3600 * 24 * 1000;
-
         List<Task> tasks = taskService.list(wrapper)
                 .stream()
                 .peek(t -> {
+                    if (t.getCategoryId() == null){
+                        t.setTaskStatus(0);
+                    }else {
+                        t.setTaskStatus(1);
+                    }
                     t.setTaskId(null);
-                    t.setCreatedAt(new Date(tomorrow));
+                    t.setCreatedAt(new Date(t.getCreatedAt().getTime() + 3600 * 24 * 1000));
                     t.setTodayTotalTimes(0);
                     t.setStartedAt(null);
                     t.setCompletedAt(null);
