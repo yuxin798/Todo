@@ -6,4 +6,6 @@ public interface StatisticService {
     StatisticVo statistic();
 
     StatisticVo statisticByTask(Long taskId);
+
+    StatisticVo simpleStatisticByTask(Long taskId);
 }

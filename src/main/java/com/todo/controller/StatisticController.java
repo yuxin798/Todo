@@ -37,4 +37,14 @@ public class StatisticController {
         StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
         return Result.success(statisticVo);
     }
+
+    /*
+     * 只包含 这个任务的累计 专注次数 和 专注时长
+     */
+    @Operation(summary = "每个任务的简化统计数据")
+    @GetMapping("/simple/{taskId}")
+    public Result<StatisticVo> simpleStatisticByTask(@PathVariable Long taskId) {
+        StatisticVo statisticVo = statisticServiceImpl.simpleStatisticByTask(taskId);
+        return Result.success(statisticVo);
+    }
 }

@@ -96,6 +96,7 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
                 .set(StringUtils.hasText(taskCategoryDto.getCategoryName()), TaskCategory::getCategoryName, taskCategoryDto.getCategoryName())
                 .set(taskCategoryDto.getColor() != null, TaskCategory::getColor, taskCategoryDto.getColor())
                 .eq(TaskCategory::getCategoryId, taskCategoryDto.getCategoryId());
+
         this.update(updateWrapper);
         TaskCategory taskCategory = this.getOne(new LambdaQueryWrapper<>(TaskCategory.class)
                 .eq(TaskCategory::getCategoryId, taskCategoryDto.getCategoryId())
@@ -126,7 +127,11 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
                 );
 
         LambdaQueryWrapper<Task> taskQueryWrapper = new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUserId());
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .ge(Task::getCreatedAt, DateUtil.todayMinTime())
+                .le(Task::getCreatedAt, DateUtil.todayMaxTime())
+                .isNotNull(Task::getCategoryId)
+                .orderByAsc(Task::getCreatedAt);;
         Map<Long, List<TaskVo>> taskVos = taskMapper.selectList(taskQueryWrapper)
                 .stream()
                 .map(TaskVo::new)

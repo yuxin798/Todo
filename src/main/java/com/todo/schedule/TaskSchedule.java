@@ -32,7 +32,7 @@ public class TaskSchedule {
 
     // 0 0 2 * * ?  每天2点执行一次
     @Scheduled(cron = "0 30 3 * * ?")
-    public void taskSchedule() {
+    public void taskScheduleInsert() {
         long now = System.currentTimeMillis();
         LocalDate date = LocalDate.ofInstant(Instant.ofEpochMilli(now), ZoneId.of("UTC+8"));
         Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));

@@ -136,6 +136,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .set(taskDto.getRestTime() != null, Task::getRestTime, taskDto.getRestTime())
                 .set(taskDto.getAgain() != null, Task::getAgain, taskDto.getAgain())
                 .set(StringUtils.hasText(taskDto.getRemark()), Task::getRemark, taskDto.getRemark())
+                .set(StringUtils.hasText(taskDto.getBackground()), Task::getBackground, taskDto.getBackground())
                 .eq(Task::getParentId, task.getParentId())
                 .ge(Task::getCreatedAt, DateUtil.todayMinTime());
         baseMapper.update(wrapper);
@@ -293,17 +294,20 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
     }
 
     @Override
-    public Result<Map<Long, List<TaskVo>>> getTaskDay() {
-        LocalDateTime now = LocalDateTime.now();
+    public Result<Map<Long, List<TaskVo>>> getTaskDay(Long timestamp) {
+        LocalDateTime currentDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8"));
         // 本月第一天0时0分
-        LocalDateTime firstDayOfMonth = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
+        LocalDateTime firstDayOfMonth = LocalDateTime.of(LocalDate.from(currentDateTime.with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
         // 本月最后一天23：59：59
-        LocalDateTime lastDayOfMonth = LocalDateTime.of(LocalDate.from(now.with(TemporalAdjusters.lastDayOfMonth())), LocalTime.MAX);
+        LocalDateTime lastDayOfMonth = LocalDateTime.of(LocalDate.from(currentDateTime.with(TemporalAdjusters.lastDayOfMonth())), LocalTime.MAX);
 
         LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUserId())
+                .in(Task::getTaskStatus, TODO_TODAY.getCode(), COMPLETED.getCode())
                 .ge(Task::getCreatedAt, firstDayOfMonth)
-                .le(Task::getCreatedAt, lastDayOfMonth);
+                .le(Task::getCreatedAt, lastDayOfMonth)
+                .orderByAsc(Task::getCreatedAt)
+                .orderByAsc(Task::getTaskStatus);
 
         Map<Long, List<TaskVo>> result = this.list(queryWrapper)
                 .stream()
@@ -314,9 +318,11 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                                 .atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
                 ));
 
-        // 删除明天的
-        result.remove(DateUtil.tomorrowMinTime().getTime());
-
+        LocalDateTime now = LocalDateTime.now();
+        if (currentDateTime.getYear() == now.getYear() && currentDateTime.getMonth() == now.getMonth()){
+            //删除明天的
+            result.remove(DateUtil.tomorrowMinTime().getTime());
+        }
         return Result.success(result);
     }
 }

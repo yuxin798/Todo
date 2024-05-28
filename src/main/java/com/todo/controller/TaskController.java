@@ -88,9 +88,8 @@ public class TaskController {
     }
 
     @Operation(summary = "查询一个月哪天存在任务")
-    @GetMapping("/getTaskDay")
-    public Result<Map<Long, List<TaskVo>>> getTaskDay() {
-        return taskService.getTaskDay();
+    @GetMapping("/getTaskDay/{timestamp}")
+    public Result<Map<Long, List<TaskVo>>> getTaskDay(@PathVariable Long timestamp) {
+        return taskService.getTaskDay(timestamp);
     }
-
 }

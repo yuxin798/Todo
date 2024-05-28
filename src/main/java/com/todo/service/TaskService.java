@@ -34,5 +34,5 @@ public interface TaskService extends IService<Task> {
 
     Result<List<TaskVo>> findByDay(Long timestamp);
 
-    Result<Map<Long, List<TaskVo>>> getTaskDay();
+    Result<Map<Long, List<TaskVo>>> getTaskDay(Long timestamp);
 }

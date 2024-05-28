@@ -16,4 +16,5 @@ public class RedisConstant {
 
     // 单个任务的统计信息
     public static final String TASK_STATISTIC = "task:statistic:";
+
 }

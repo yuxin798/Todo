@@ -37,7 +37,6 @@ public class TaskDto {
 
     private String remark;
 
-//    @Size(min = 1, message = "预估番茄钟数不能为0", groups = {AddTask.class, UpdateTask.class})
     private List<Integer> estimate;
 
     @Min(value = 1, message = "自定义休息时间最小值为1分钟", groups = {AddTask.class, UpdateTask.class})
@@ -48,20 +47,12 @@ public class TaskDto {
 
     private Long categoryId;
 
-    @Min(value = 1, message = "番茄钟数最小值为1", groups = UpdateTask.class)
-    private Integer tomatoClockTimes;
-    private List<TomatoClock> tomatoClocks;
-    @Min(value = 1, message = "番茄钟数最小值为0", groups = UpdateTask.class)
-    private Integer stopTimes;
-
     @Min(value = 0, message = "任务状态范围为0~3", groups = UpdateTask.class)
     @Max(value = 3, message = "任务状态范围为0~3", groups = UpdateTask.class)
     private Integer taskStatus;
 
-    @Min(value = 0, message = "最小内部中断次数为0", groups = UpdateTask.class)
-    private Integer innerInterrupt;
-    @Min(value = 0, message = "最小外部中断次数为0", groups = UpdateTask.class)
-    private Integer outerInterrupt;
+    private String background;
+
 
     private Date startedAt;
     private Date completedAt;

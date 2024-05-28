@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "清单任务分类API")
 @RestController
@@ -52,5 +53,11 @@ public class TaskCategoryController {
     @GetMapping("/{categoryId}")
     public Result<List<TaskVo>> getAllTasks(@PathVariable Long categoryId){
         return taskCategoryService.getAllTasks(categoryId);
+    }
+
+    @Operation(summary = "查询所有清单集合及每个清淡下面的所有任务")
+    @GetMapping("/getAllCategoryAndTasks")
+    public Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks(){
+        return taskCategoryService.getAllCategoryAndTasks();
     }
 }

@@ -33,7 +33,6 @@ public class StatisticServiceImpl implements StatisticService {
     private final TaskServiceImpl taskServiceImpl;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TomatoClockService tomatoClockService;
-
     private final HashMap<Long, String> taskIdNameMap;
 
     public StatisticServiceImpl(TaskServiceImpl taskServiceImpl, RedisTemplate<String, Object> redisTemplate, TomatoClockService tomatoClockService) {
@@ -56,9 +55,7 @@ public class StatisticServiceImpl implements StatisticService {
 
         List<TaskVo> tasks = taskServiceImpl.findAll();
 
-        tasks.forEach(taskVo -> {
-            taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName());
-        });
+        tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
 
         List<TomatoClock> tomatoClocks = tomatoClockService.list(
                 new LambdaQueryWrapper<>(TomatoClock.class)
@@ -100,6 +97,27 @@ public class StatisticServiceImpl implements StatisticService {
         StatisticVo statisticVo = getStatisticVo(tomatoClocks);
 
         redisTemplate.opsForValue().set(key, statisticVo, 1, TimeUnit.MINUTES);
+        return statisticVo;
+    }
+
+    @Override
+    public StatisticVo simpleStatisticByTask(Long taskId) {
+        Task task = taskServiceImpl.getById(taskId);
+
+        StatisticVo statisticVo = new StatisticVo();
+        AtomicInteger tomatoTimes = new AtomicInteger(0);
+        AtomicLong tomatoDuration = new AtomicLong(0);
+
+        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getParentId, task.getParentId())
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode());
+        tomatoClockService.list(queryWrapper)
+                .forEach(t -> {
+                    tomatoTimes.addAndGet(1);
+                    tomatoDuration.addAndGet(t.getClockDuration());
+                });
+        statisticVo.setTomatoTimes(tomatoTimes.get());
+        statisticVo.setTomatoDuration(tomatoDuration.get());
         return statisticVo;
     }
 

@@ -9,6 +9,7 @@ import com.todo.vo.TaskCategoryVo;
 import com.todo.vo.TaskVo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TaskCategoryService extends IService<TaskCategory> {
 
@@ -21,4 +22,6 @@ public interface TaskCategoryService extends IService<TaskCategory> {
     Result<List<TaskCategoryVo>> getAll();
 
     Result<List<TaskVo>> getAllTasks(Long categoryId);
+
+    Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks();
 }
