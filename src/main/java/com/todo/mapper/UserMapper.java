@@ -12,9 +12,6 @@ import org.apache.ibatis.annotations.Param;
 */
 public interface UserMapper extends BaseMapper<User> {
 
-    User findUserByEmail(String email);
-
-    boolean updateUserByUserId(@Param("userId") Long userId, @Param("userName")String userName, @Param("password")String password);
 }
 
 

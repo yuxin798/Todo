@@ -24,7 +24,7 @@ public class TaskSchedule {
 //    @Scheduled(cron = "0 */1 * * * ?") 每分钟执行一次  用于测试
 
     // 0 0 2 * * ?  每天2点执行一次
-    @Scheduled(cron = "0 30 3 * * ?")
+    @Scheduled(cron = "0 30 23 * * ?")
     public void taskScheduleInsert() {
         long now = System.currentTimeMillis();
         LocalDate date = LocalDate.ofInstant(Instant.ofEpochMilli(now), ZoneId.of("UTC+8"));

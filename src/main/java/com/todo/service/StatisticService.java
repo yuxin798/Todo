@@ -3,9 +3,11 @@ package com.todo.service;
 import com.todo.vo.statistic.StatisticVo;
 
 public interface StatisticService {
-    StatisticVo statistic();
-
-    StatisticVo statisticByTask(Long taskId);
+    StatisticVo statisticByTask(Long taskId, Long timestamp);
 
     StatisticVo simpleStatisticByTask(Long taskId);
+
+    StatisticVo statistic(Long timestamp);
+
+    StatisticVo statistic();
 }

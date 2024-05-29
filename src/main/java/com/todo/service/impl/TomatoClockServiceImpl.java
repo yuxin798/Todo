@@ -175,7 +175,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         dataVerificationAndAuthenticationByTaskId(taskId);
 
         LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
-                .set(TomatoClock::getClockStatus, TERMINATED)
+                .set(TomatoClock::getClockStatus, TERMINATED.getCode())
                 .set(stopReason != null, TomatoClock::getStopReason, stopReason)
                 .set(TomatoClock::getCompletedAt, new Date())
                 .eq(TomatoClock::getTaskId, taskId)

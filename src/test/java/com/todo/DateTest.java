@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateTest {
     @Test
@@ -88,5 +89,45 @@ public class DateTest {
 
         System.out.println("本月第一天0时0分" + firstDay);
         System.out.println("本月最后一天23：59：59" + lastDay);
+    }
+
+    @Test
+    void Calendar() {
+        // 每周 周一
+//        Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+//        calendar.setTimeInMillis(1716619487000L);
+//        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+//        calendar.set(Calendar.HOUR_OF_DAY, 0);
+//        calendar.set(Calendar.MINUTE, 0);
+//        calendar.set(Calendar.SECOND, 0);
+//        System.out.println(calendar.getTime().toInstant().toEpochMilli());
+
+        // 每月 1号
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(1716619487000L);
+        calendar.set(calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH),
+                0, 0, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+        System.out.println(calendar.getTime().toInstant().toEpochMilli());
+    }
+
+    @Test
+    void name() {
+//        // 获取当前日期
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(1714290053000L);
+//        // 设置第一个Calendar为本周周一
+//        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+//        Calendar mondayCalendar = (Calendar) calendar.clone();
+//        System.out.println("本周周一：" + mondayCalendar.getTime());
+//
+//        // 设置第二个Calendar为本周周日
+//        calendar.add(Calendar.DATE, 6); // 加6天到下周周一
+//        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+//        Calendar sundayCalendar = (Calendar) calendar.clone();
+//        System.out.println("本周周日：" + sundayCalendar.getTime());
+        System.out.println(calendar.get(Calendar.DAY_OF_WEEK));
     }
 }

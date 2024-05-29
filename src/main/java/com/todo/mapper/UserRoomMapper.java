@@ -12,9 +12,6 @@ import org.apache.ibatis.annotations.Param;
 */
 public interface UserRoomMapper extends BaseMapper<UserRoom> {
 
-    UserRoom selectBeforeInRoom(@Param("roomId") Long roomId, @Param("userId") Long userId);
-
-    void updateDeleted(@Param("roomId") Long roomId, @Param("userId") Long userId);
 }
 
 

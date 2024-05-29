@@ -104,6 +104,13 @@ public class TomatoClock implements Serializable {
         this.parentId = parentId;
     }
 
+    public TomatoClock(Long taskId, Long parentId, Integer clockDuration, Integer clockStatus) {
+        this.taskId = taskId;
+        this.parentId = parentId;
+        this.clockDuration = clockDuration;
+        this.clockStatus = clockStatus;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

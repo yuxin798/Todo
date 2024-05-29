@@ -8,6 +8,7 @@ import io.minio.PutObjectArgs;
 import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +23,9 @@ import java.util.UUID;
 public class FileUploadServiceImpl implements FileUploadService {
 
     private MinioProperties minioProperties;
+
+    @Value("${ip}")
+    private String ip;
 
     @Override
     public String save(MultipartFile file, String fileRootPath) {
@@ -67,7 +71,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             // http://172.17.0.4:9000/spzx-bucket/avatar/20231120/99b01bae8a7446248af40d6082750694.jpg
             // http://192.168.144.132:9090/spzx-bucket/avatar/20231120/99b01bae8a7446248af40d6082750694.jpg
 //            return minioProperties.getEndpoint() + "/" + minioProperties.getBucket() + fileName;
-            return "http://8.130.163.41:9000" + "/" + minioProperties.getBucket() + fileName;
+            return "http://" + ip + ":9000" + "/" + minioProperties.getBucket() + fileName;
         } catch (MinioException e) {
             e.printStackTrace();
             throw new RuntimeException("文件上传失败");

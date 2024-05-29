@@ -25,6 +25,13 @@ public class StatisticController {
     }
 
     @Operation(summary = "获得统计数据")
+    @GetMapping("/{timestamp}")
+    public Result<StatisticVo> statistic(@PathVariable Long timestamp) {
+        StatisticVo statisticVo = statisticServiceImpl.statistic(timestamp);
+        return Result.success(statisticVo);
+    }
+
+    @Operation(summary = "获得统计数据")
     @GetMapping("/")
     public Result<StatisticVo> statistic() {
         StatisticVo statisticVo = statisticServiceImpl.statistic();
@@ -32,9 +39,9 @@ public class StatisticController {
     }
 
     @Operation(summary = "每个任务的统计数据")
-    @GetMapping("/complex/{taskId}")
-    public Result<StatisticVo> statisticByTask(@PathVariable Long taskId) {
-        StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
+    @GetMapping("/complex/{taskId}/{timestamp}")
+    public Result<StatisticVo> statisticByTask(@PathVariable Long taskId, @PathVariable Long timestamp) {
+        StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId, timestamp);
         return Result.success(statisticVo);
     }
 

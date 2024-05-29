@@ -7,12 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.constant.RedisConstant;
 import com.todo.dto.RoomDto;
-import com.todo.entity.Room;
-import com.todo.entity.User;
-import com.todo.entity.UserRoom;
-import com.todo.mapper.RoomMapper;
-import com.todo.mapper.UserMapper;
-import com.todo.mapper.UserRoomMapper;
+import com.todo.entity.*;
+import com.todo.mapper.*;
 import com.todo.service.RoomService;
 import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
@@ -24,9 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -38,25 +38,37 @@ import java.util.stream.Collectors;
 public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     implements RoomService {
 
-    @Autowired
-    private UserRoomMapper userRoomMapper;
+    private final UserRoomMapper userRoomMapper;
+    private final UserMapper userMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final TaskMapper taskMapper;
+    private final TomatoClockMapper tomatoClockMapper;
 
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public RoomServiceImpl(UserRoomMapper userRoomMapper, UserMapper userMapper, RedisTemplate<String, Object> redisTemplate, TaskMapper taskMapper, TomatoClockMapper tomatoClockMapper) {
+        this.userRoomMapper = userRoomMapper;
+        this.userMapper = userMapper;
+        this.redisTemplate = redisTemplate;
+        this.taskMapper = taskMapper;
+        this.tomatoClockMapper = tomatoClockMapper;
+    }
 
     @Override
     public RoomVo createRoom(RoomDto roomDto) {
-        User user = UserContextUtil.getUser();
+        Long userId = UserContextUtil.getUserId();
+
+        UserRoom userRoom = userRoomMapper.selectOne(new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, userId));
+
+        if (userRoom != null){
+            throw new RuntimeException("您已经加入了某个自习室，不能再加入其他自习室");
+        }
 
         // 添加 room
-        Room room = new Room(user.getUserId(), roomDto.getRoomName(), roomDto.getRoomAvatar());
+        Room room = new Room(userId, roomDto.getRoomName(), roomDto.getRoomAvatar());
         baseMapper.insert(room);
 
         // 添加关系
-        userRoomMapper.insert(new UserRoom(user.getUserId(), room.getRoomId()));
+        userRoomMapper.insert(new UserRoom(userId, room.getRoomId()));
         return new RoomVo(room.getRoomId(), room.getRoomName(), room.getRoomAvatar());
     }
 
@@ -81,7 +93,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             // 没有邀请码
             do {
                 code = RandomUtil.randomString("0123456789", 6);
-            } while (code.equals(redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + code)));
+            } while (redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + code) != null);
             redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_CODE + code, roomId, 7, TimeUnit.DAYS);
             redisTemplate.opsForValue().set(RedisConstant.ROOM_INVITATION_ID + roomId, code, 7, TimeUnit.DAYS);
         }
@@ -92,20 +104,18 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     @Override
     public void acceptInvitation(String invitationCode) {
         Long userId = UserContextUtil.getUser().getUserId();
+
+        UserRoom userRoom = userRoomMapper.selectOne(new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, userId));
+
+        if (userRoom != null){
+            throw new RuntimeException("您已经加入了某个自习室，不能再加入其他自习室");
+        }
+
         Long roomId = (Long) redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_CODE + invitationCode);
         if(roomId == null){
             throw new RuntimeException("邀请码不存在");
         }
-
-        UserRoom userRoom = userRoomMapper.selectBeforeInRoom(roomId, userId);
-        //判断以前是否进入过该自习室 如果进入过 只需要进行简单的将 deleted 变为 0
-        if (userRoom != null && userRoom.getDeleted() == 0) {
-            throw new RuntimeException("已加入自习室");
-        }else if (userRoom != null && userRoom.getDeleted() == 1){
-            userRoomMapper.updateDeleted(roomId, userId);
-            return;
-        }
-
         userRoomMapper.insert(new UserRoom(userId, roomId));
 
         // 用户已经通过邀请码加入自习室  判断 用户以前是否申请过  如果申请过 删除申请
@@ -114,6 +124,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
     @Override
     public List<UserVo> listUsers(Long roomId) {
+        LocalDate date = LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8"));
+        Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));
+        Date end = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"))));
+
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .select(UserRoom::getUserId)
                 .eq(UserRoom::getRoomId, roomId);
@@ -125,6 +139,25 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         return userMapper.selectList(userWrapper)
                 .stream()
                 .map(UserVo::new)
+                .peek(u -> {
+                    List<Long> taskIds = taskMapper.selectList(new LambdaQueryWrapper<>(Task.class)
+                                    .eq(Task::getUserId, u.getUserId())
+                                    .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode())
+                                    .ge(Task::getCreatedAt, start)
+                                    .le(Task::getCreatedAt, end))
+                            .stream()
+                            .map(Task::getParentId)
+                            .distinct()
+                            .toList();
+                    AtomicLong tomatoDuration = new AtomicLong(0);
+                    if (!taskIds.isEmpty()){
+                        tomatoClockMapper.selectList(new LambdaQueryWrapper<>(TomatoClock.class)
+                                        .in(TomatoClock::getParentId, taskIds)
+                                        .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
+                                .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
+                    }
+                    u.setTomatoDuration(tomatoDuration.get());
+                })
                 .toList();
     }
 
@@ -205,14 +238,13 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
     @Override
     public void deleteRoom(Long roomId) {
-        User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
         if (room == null) {
             throw new RuntimeException("自习室不存在");
         }
 
-        if (!user.getUserId().equals(room.getUserId())) {
+        if (!UserContextUtil.getUserId().equals(room.getUserId())) {
             throw new RuntimeException("没有权限");
         }
 
@@ -249,7 +281,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     @Override
     public Page<RoomVo> findRooms(RoomDto roomDto, int pageNum, int pageSize) {
         LambdaQueryWrapper<Room> wrapper = new LambdaQueryWrapper<>(Room.class)
-                .like(Room::getRoomName, roomDto.getRoomName());
+                .like(StringUtils.hasText(roomDto.getRoomName()), Room::getRoomName, roomDto.getRoomName());
 
         Page<Room> roomPage = baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
 
@@ -265,17 +297,19 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     @Override
     public void requestJoin(Long roomId) {
         User user = UserContextUtil.getUser();
-        Room room = baseMapper.selectById(roomId);
-
-        if (room == null) {
-            throw new RuntimeException("自习室不存在");
-        }
 
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
-                .eq(UserRoom::getUserId, user.getUserId())
-                .eq(UserRoom::getRoomId, roomId);
-        if (userRoomMapper.selectOne(wrapper) != null) {
-            throw new RuntimeException("用户已在自习室中");
+                .eq(UserRoom::getUserId, user.getUserId());
+        UserRoom userRoom = userRoomMapper.selectOne(wrapper);
+        if (userRoom != null && Objects.equals(userRoom.getRoomId(), roomId)) {
+            throw new RuntimeException("用户已在该自习室中");
+        }else if (userRoom != null && !Objects.equals(userRoom.getRoomId(), roomId)){
+            throw new RuntimeException("您已经加入了某个自习室，不能再加入其他自习室");
+        }
+
+        Room room = baseMapper.selectById(roomId);
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
         }
 
         Long index = redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + roomId, user.getUserId().toString());
@@ -313,15 +347,6 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
         if (!ids.contains(userId.toString())) {
             throw new RuntimeException("申请不存在");
-        }
-
-        UserRoom userRoom = userRoomMapper.selectBeforeInRoom(roomId, userId);
-        //判断以前是否进入过该自习室 如果进入过 只需要进行简单的将 deleted 变为 0
-        if (userRoom != null && userRoom.getDeleted() == 0) {
-            throw new RuntimeException("已加入自习室");
-        }else if (userRoom != null && userRoom.getDeleted() == 1){
-            userRoomMapper.updateDeleted(roomId, userId);
-            return;
         }
 
         userRoomMapper.insert(new UserRoom(userId, roomId));
@@ -363,6 +388,24 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .stream()
                 .map(UserVo::new)
                 .toList();
+    }
+
+    @Override
+    public RoomVo getRoomInfo() {
+        User user = UserContextUtil.getUser();
+
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .select(UserRoom::getRoomId)
+                .eq(UserRoom::getUserId, user.getUserId());
+        UserRoom userRoom = userRoomMapper.selectOne(wrapper);
+        if (userRoom == null) {
+            throw new RuntimeException("用户未加入自习室");
+        }
+
+        Room room = this.getOne(new LambdaQueryWrapper<>(Room.class)
+                .eq(Room::getRoomId, userRoom.getRoomId()));
+
+        return new RoomVo(room);
     }
 }
 

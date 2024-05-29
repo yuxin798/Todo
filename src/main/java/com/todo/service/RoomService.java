@@ -41,4 +41,6 @@ public interface RoomService extends IService<Room> {
     void acceptRequest(Long roomId, Long userId);
 
     List<UserVo> findRequests(Long roomId);
+
+    RoomVo getRoomInfo();
 }

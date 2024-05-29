@@ -73,7 +73,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         Long taskId = task.getTaskId();
 
         //如果循环 并且 当前时间 在定时任务完成之后 则同时插入明天的任务
-        if (taskDto.getAgain() == 0 && LocalTime.now().isAfter(LocalTime.of(3, 30))){
+        if (taskDto.getAgain() == 0 && LocalTime.now().isAfter(LocalTime.of(23, 30))){
             task.setCreatedAt(Date.from(now.plusDays(1).atZone(ZoneId.of("+8")).toInstant()));
             task.setTaskId(null);
             baseMapper.insert(task);
@@ -107,6 +107,11 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
 
         if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())) {
             throw new RuntimeException("任务不存在");
+        }
+
+        //如果更改计时类型 需要将番茄钟时长更改为0
+        if (taskDto.getType() != null && (taskDto.getType() == 1 || taskDto.getType() == 2)){
+            taskDto.setClockDuration(0);
         }
 
         // 将 again 改为 1 需要删除明天的任务数据  
@@ -194,6 +199,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         }
 
         if (task.getType() == 2){
+            TomatoClock tomatoClock = new TomatoClock(taskId, task.getParentId(), 0, 0);
+            tomatoClockMapper.insert(tomatoClock);
             Date now = new Date();
             this.update(new LambdaUpdateWrapper<>(Task.class)
                             .set(Task::getTodayTotalTimes, task.getTodayTotalTimes() + 1)

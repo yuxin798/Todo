@@ -96,6 +96,13 @@ public class RoomController {
         return Result.success(rooms);
     }
 
+    @Operation(summary = "查询用户加入的自习室")
+    @GetMapping("/getRoomInfo")
+    public Result<RoomVo> getRoomInfo() {
+        RoomVo roomVo = roomService.getRoomInfo();
+        return Result.success(roomVo);
+    }
+
     /**
      * 管理员移除某位用户
      */

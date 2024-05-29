@@ -17,6 +17,8 @@ public class UserVo {
     private String signature;
     private Date createdAt;
 
+    private Long tomatoDuration;
+
     public UserVo(User user) {
         this.userId = user.getUserId();
         this.userName = user.getUserName();

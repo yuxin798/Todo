@@ -16,10 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,8 +40,8 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticVo statistic() {
-        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId();
+    public StatisticVo statistic(Long timestamp) {
+        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId() + ":" + timestamp;
 
         Object o = redisTemplate.opsForValue().get(key);
         if (o != null) {
@@ -61,20 +58,41 @@ public class StatisticServiceImpl implements StatisticService {
                 new LambdaQueryWrapper<>(TomatoClock.class)
                         .in(TomatoClock::getTaskId,
                                 tasks
-                                .stream()
-                                .map(TaskVo::getTaskId)
-                                .collect(Collectors.toList()))
+                                        .stream()
+                                        .map(TaskVo::getTaskId)
+                                        .collect(Collectors.toList()))
         );
 
-        StatisticVo statisticVo = getStatisticVo(tomatoClocks);
+        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
 
         redisTemplate.opsForValue().set(key, statisticVo, 5, TimeUnit.MINUTES);
         return statisticVo;
     }
 
     @Override
-    public StatisticVo statisticByTask(Long taskId) {
-        String key = RedisConstant.TASK_STATISTIC + taskId;
+    public StatisticVo statistic() {
+        Long timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")) * 1000;
+
+        List<TaskVo> tasks = taskServiceImpl.findAll();
+
+        tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
+
+        List<TomatoClock> tomatoClocks = tomatoClockService.list(
+                new LambdaQueryWrapper<>(TomatoClock.class)
+                        .in(TomatoClock::getTaskId,
+                                tasks
+                                        .stream()
+                                        .map(TaskVo::getTaskId)
+                                        .collect(Collectors.toList()))
+        );
+
+        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
+        return statisticVo;
+    }
+
+    @Override
+    public StatisticVo statisticByTask(Long taskId, Long timestamp) {
+        String key = RedisConstant.TASK_STATISTIC + taskId + ":" + timestamp;
 
         Object o = redisTemplate.opsForValue().get(key);
         if (o != null) {
@@ -94,7 +112,7 @@ public class StatisticServiceImpl implements StatisticService {
                 new LambdaQueryWrapper<>(TomatoClock.class)
                         .eq(TomatoClock::getParentId, task.getParentId())
         );
-        StatisticVo statisticVo = getStatisticVo(tomatoClocks);
+        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
 
         redisTemplate.opsForValue().set(key, statisticVo, 1, TimeUnit.MINUTES);
         return statisticVo;
@@ -122,7 +140,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @NotNull
-    private StatisticVo getStatisticVo(List<TomatoClock> tomatoClocks) {
+    private StatisticVo getStatisticVo(List<TomatoClock> tomatoClocks, Long timestamp) {
         // 专注天数
         int tomatoDays;
         // 专注总时间次数
@@ -167,9 +185,9 @@ public class StatisticServiceImpl implements StatisticService {
         // 整合数据
         StatisticVo statisticVo = new StatisticVo();
         // 专注时长分布
-        statisticVo.setRatioByDurationOfDay(getFocusDuration(taskIdNameMap, dayTomatoTmp, DAY));
-        statisticVo.setRatioByDurationOfWeek(getFocusDuration(taskIdNameMap, dayTomatoTmp, WEEK));
-        statisticVo.setRatioByDurationOfMonth(getFocusDuration(taskIdNameMap, dayTomatoTmp, MONTH));
+        statisticVo.setRatioByDurationOfDay(getFocusDuration(taskIdNameMap, dayTomatoTmp, timestamp, DAY));
+        statisticVo.setRatioByDurationOfWeek(getFocusDuration(taskIdNameMap, dayTomatoTmp,timestamp, WEEK));
+        statisticVo.setRatioByDurationOfMonth(getFocusDuration(taskIdNameMap, dayTomatoTmp, timestamp,MONTH));
 
         // 日均时长
         tomatoDays = dayTomatoMap.size();
@@ -194,13 +212,17 @@ public class StatisticServiceImpl implements StatisticService {
             this.days = days;
         }
 
-        public long getStartEpochSecond() {
+        public long getStartEpochSecond(Long timestamp) {
             switch (this) {
                 case DAY -> {
-                    return LocalDate.now(ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
+                    return LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
                 }
                 case WEEK -> {
-                    Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+                    Calendar calendar = Calendar.getInstance(TimeZone.getDefault(), Locale.CHINA);
+                    calendar.setTimeInMillis(timestamp);
+                    if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY){
+                        calendar.add(Calendar.DATE, -1);
+                    }
                     calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
                     calendar.set(Calendar.HOUR_OF_DAY, 0);
                     calendar.set(Calendar.MINUTE, 0);
@@ -209,6 +231,7 @@ public class StatisticServiceImpl implements StatisticService {
                 }
                 case MONTH -> {
                     Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(timestamp);
                     calendar.set(calendar.get(Calendar.YEAR),
                             calendar.get(Calendar.MONTH),
                             calendar.get(Calendar.DAY_OF_MONTH),
@@ -222,17 +245,46 @@ public class StatisticServiceImpl implements StatisticService {
             return 0;
         }
 
-        public long getEndEpochSecond() {
-            return LocalDate.now(ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
+        public long getEndEpochSecond(Long timestamp) {
+            switch (this) {
+                case DAY -> {
+                    return LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"));
+                }
+                case WEEK -> {
+                    Calendar calendar = Calendar.getInstance(TimeZone.getDefault(), Locale.CHINA);
+                    calendar.setTimeInMillis(timestamp);
+                    if (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY){
+                        calendar.add(Calendar.DATE, 7);
+                    }
+                    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    return calendar.getTime().toInstant().getEpochSecond();
+                }
+                case MONTH -> {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(timestamp);
+                    calendar.set(calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH),
+                            0, 0, 0);
+                    calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+                    return calendar.getTime().toInstant().getEpochSecond();
+                }
+                case YEAR -> {
+                }
+            }
+            return 0;
         }
     }
 
-    private List<TaskRatio> getFocusDuration(HashMap<Long, String> taskIdNameMap, HashMap<Long, List<TomatoClock>> dayTomatoTmp, Unit timeUnit) {
+    private List<TaskRatio> getFocusDuration(HashMap<Long, String> taskIdNameMap, HashMap<Long, List<TomatoClock>> dayTomatoTmp, Long timestamp, Unit timeUnit) {
         // exclusive
-        long start = 1000 * timeUnit.getStartEpochSecond();
+        long start = 1000 * timeUnit.getStartEpochSecond(timestamp);
 
         // inclusive
-        long end = 1000 * timeUnit.getEndEpochSecond();
+        long end = 1000 * timeUnit.getEndEpochSecond(timestamp);
 
         Map<String, Integer> tmp = new HashMap<>();
         AtomicInteger sum = new AtomicInteger();

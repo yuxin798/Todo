@@ -62,28 +62,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             throw new RuntimeException("两次密码不一致");
         }
-        User queryUser = baseMapper.findUserByEmail(userDto.getEmail());
-        //用户已注册且未注销
-        if (queryUser != null && queryUser.getDeleted() == 0){
-            throw new RuntimeException("帐号已存在，请更换邮箱");
-        }
+
         //邮箱验证码验证
         String emailCode = redisTemplate.opsForValue().get(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail());
         if (!StringUtils.hasText(emailCode) || !emailCode.equals(userDto.getEmailCode())){
             throw new RuntimeException("邮箱验证码错误");
         }
+
+        User queryUser = baseMapper.selectOne(new LambdaQueryWrapper<>(User.class)
+                .eq(User::getEmail, userDto.getEmail()));
+        if (queryUser != null){
+            throw new RuntimeException("帐号已存在，请更换邮箱");
+        }
+
         //密码加密
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        //用户已注册且已注销，重新注册
-        if(queryUser != null && queryUser.getDeleted() == 1){
-            if (baseMapper.updateUserByUserId(queryUser.getUserId(), userDto.getUserName(), userDto.getPassword())){
-                redisTemplate.expire(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
-                return Result.success();
-            }else {
-                throw new RuntimeException("网络繁忙，请稍后重试");
-            }
-        }
-        //用户从未注册过
+
         User user = new User(userDto.getUserName(), userDto.getEmail(), userDto.getPassword(), DefaultGeneratorUtils.getRandomDefaultAvatar(), DefaultGeneratorUtils.getRandomDefaultSignature());
         if (this.save(user)){
             redisTemplate.expire(RedisConstant.USER_EMAIL_CODE + userDto.getEmailCodeKey() + userDto.getEmail(), 0, TimeUnit.SECONDS);
