@@ -1,12 +1,8 @@
 package com.todo.schedule;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.todo.entity.Task;
-import com.todo.mapper.TaskMapper;
 import com.todo.service.TaskService;
-import com.todo.util.DateUtil;
-import com.todo.util.UserContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,9 +10,6 @@ import org.springframework.stereotype.Component;
 import java.time.*;
 import java.util.Date;
 import java.util.List;
-
-import static com.todo.entity.Task.Status.COMPLETED;
-import static com.todo.entity.Task.Status.TODO_TODAY;
 
 @Component
 public class TaskSchedule {

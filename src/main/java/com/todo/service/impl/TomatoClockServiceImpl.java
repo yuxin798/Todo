@@ -96,10 +96,33 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     }
 
     @Override
-    public Result<Map<Long, List<TomatoClockVo>>> statisticByHistory(Long taskId) {
+    public Result<Map<Long, List<TomatoClockVo>>> statisticHistoryByTask(Long taskId) {
         Task task = taskMapper.selectById(taskId);
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getParentId, task.getParentId())
+                .in(TomatoClock::getClockStatus, COMPLETED.getCode(), TERMINATED.getCode());
+        Map<Long, List<TomatoClockVo>> statistic = this.list(queryWrapper)
+                .stream()
+                .map(TomatoClockVo::new)
+                .collect(Collectors.groupingBy(
+                        t -> 1000 * LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
+                ));
+        return Result.success(statistic);
+    }
+
+    @Override
+    public Result<Map<Long, List<TomatoClockVo>>> statisticHistoryByUser() {
+        LambdaQueryWrapper<Task> taskQueryWrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .in(Task::getTaskStatus, Task.Status.COMPLETED.getCode());
+        List<Long> parentIds = taskMapper.selectList(taskQueryWrapper)
+                .stream()
+                .map(Task::getParentId)
+                .distinct()
+                .toList();
+
+        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
+                .in(TomatoClock::getParentId, parentIds)
                 .in(TomatoClock::getClockStatus, COMPLETED.getCode(), TERMINATED.getCode());
         Map<Long, List<TomatoClockVo>> statistic = this.list(queryWrapper)
                 .stream()

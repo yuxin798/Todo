@@ -32,7 +32,7 @@ public class StatisticController {
     }
 
     @Operation(summary = "每个任务的统计数据")
-    @GetMapping("/{taskId}")
+    @GetMapping("/complex/{taskId}")
     public Result<StatisticVo> statisticByTask(@PathVariable Long taskId) {
         StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId);
         return Result.success(statisticVo);

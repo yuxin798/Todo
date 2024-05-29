@@ -5,7 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.dto.TaskDto;
-import com.todo.entity.*;
+import com.todo.entity.Task;
+import com.todo.entity.TomatoClock;
 import com.todo.mapper.TaskMapper;
 import com.todo.mapper.TomatoClockMapper;
 import com.todo.service.TaskService;
@@ -15,7 +16,6 @@ import com.todo.util.PageUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
-import com.todo.vo.TomatoClockVo;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.todo.entity.Task.Status.*;
@@ -171,14 +170,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             throw new RuntimeException("任务不存在");
         }
 
-        LambdaQueryWrapper<TomatoClock> wrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getTaskId, task.getAgain())
-                .ge(TomatoClock::getCreatedAt, DateUtil.todayMinTime());
-        List<TomatoClockVo> tomatoClockVoList = tomatoClockMapper
-                .selectList(wrapper)
-                .stream()
-                .map(TomatoClockVo::new)
-                .toList();
         return new TaskVo(task);
     }
 
@@ -206,6 +197,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             Date now = new Date();
             this.update(new LambdaUpdateWrapper<>(Task.class)
                             .set(Task::getTodayTotalTimes, task.getTodayTotalTimes() + 1)
+                            .set(Task::getTaskStatus, COMPLETED.getCode())
                             .set(Task::getStartedAt, now)
                             .set(Task::getCompletedAt, now)
                             .eq(Task::getTaskId, taskId)
@@ -220,8 +212,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getParentId, task.getParentId())
                 .ge(TomatoClock::getStartedAt, task.getStartedAt())
-                .le(TomatoClock::getCompletedAt, end)
-                .orderByAsc(TomatoClock::getStartedAt);
+                .le(TomatoClock::getCompletedAt, end);
         List<TomatoClock> tomatoClockList = tomatoClockMapper.selectList(queryWrapper);
 
         if (CollectionUtils.isEmpty(tomatoClockList)) {
@@ -283,8 +274,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .eq(Task::getUserId, UserContextUtil.getUserId())
                 .in(Task::getTaskStatus, TODO_TODAY.getCode(), COMPLETED.getCode())
                 .ge(Task::getCreatedAt, start)
-                .le(Task::getCreatedAt, end)
-                .orderByAsc(Task::getTaskStatus);
+                .le(Task::getCreatedAt, end);
         return Result.success(
                 baseMapper.selectList(wrapper)
                         .stream()
@@ -306,8 +296,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .in(Task::getTaskStatus, TODO_TODAY.getCode(), COMPLETED.getCode())
                 .ge(Task::getCreatedAt, firstDayOfMonth)
                 .le(Task::getCreatedAt, lastDayOfMonth)
-                .orderByAsc(Task::getCreatedAt)
-                .orderByAsc(Task::getTaskStatus);
+                .orderByAsc(Task::getTaskStatus)
+                .orderByAsc(Task::getCreatedAt);
 
         Map<Long, List<TaskVo>> result = this.list(queryWrapper)
                 .stream()

@@ -1,6 +1,5 @@
 package com.todo.dto;
 
-import com.todo.entity.TomatoClock;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -22,7 +21,7 @@ public class TaskDto {
     @Min(value = 1, message = "任务id的最小值为1")
     private Long taskId;
     private Long userId;
-    private Long parentId;;
+    private Long parentId;
 
 //    @ValidName(min = 1, max = 32, message = "任务名必须为1~32个字符", groups = {AddTask.class, UpdateTask.class})
     @NotBlank(message = "任务名不能为空", groups = AddTask.class)

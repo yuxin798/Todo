@@ -1,7 +1,6 @@
 package com.todo.controller;
 
 import com.todo.dto.TaskCategoryDto;
-import com.todo.entity.TaskCategory;
 import com.todo.service.TaskCategoryService;
 import com.todo.vo.Result;
 import com.todo.vo.TaskCategoryVo;

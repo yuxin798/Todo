@@ -1,7 +1,6 @@
 package com.todo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.dto.TaskCategoryDto;
@@ -12,7 +11,6 @@ import com.todo.mapper.TaskCategoryMapper;
 import com.todo.mapper.TaskMapper;
 import com.todo.mapper.TomatoClockMapper;
 import com.todo.service.TaskCategoryService;
-import com.todo.service.TaskService;
 import com.todo.util.DateUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
@@ -21,8 +19,6 @@ import com.todo.vo.TaskVo;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -118,7 +114,8 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
 
     public Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks() {
         LambdaQueryWrapper<TaskCategory> categoryQueryWrapper = new LambdaQueryWrapper<>(TaskCategory.class)
-                .eq(TaskCategory::getUserId, UserContextUtil.getUserId());
+                .eq(TaskCategory::getUserId, UserContextUtil.getUserId())
+                .orderByAsc(TaskCategory::getCreatedAt);
         Map<Long, TaskCategoryVo> taskCategoryVoMap = this.list(categoryQueryWrapper)
                 .stream()
                 .map(TaskCategoryVo::new)
@@ -131,7 +128,8 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
                 .ge(Task::getCreatedAt, DateUtil.todayMinTime())
                 .le(Task::getCreatedAt, DateUtil.todayMaxTime())
                 .isNotNull(Task::getCategoryId)
-                .orderByAsc(Task::getCreatedAt);;
+                .orderByAsc(Task::getTaskStatus)
+                .orderByAsc(Task::getCreatedAt);
         Map<Long, List<TaskVo>> taskVos = taskMapper.selectList(taskQueryWrapper)
                 .stream()
                 .map(TaskVo::new)
@@ -152,6 +150,7 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
                 .eq(Task::getUserId, UserContextUtil.getUserId())
                 .ge(Task::getCreatedAt, DateUtil.todayMinTime())
                 .le(Task::getCreatedAt, DateUtil.todayMaxTime())
+                .orderByAsc(Task::getTaskStatus)
                 .orderByAsc(Task::getCreatedAt);
         List<TaskVo> taskVos = taskMapper.selectList(queryWrapper)
                 .stream()
