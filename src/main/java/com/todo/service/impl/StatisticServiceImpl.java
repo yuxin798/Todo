@@ -15,6 +15,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.*;
 import java.util.*;
@@ -54,14 +55,20 @@ public class StatisticServiceImpl implements StatisticService {
 
         tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
 
-        List<TomatoClock> tomatoClocks = tomatoClockService.list(
-                new LambdaQueryWrapper<>(TomatoClock.class)
-                        .in(TomatoClock::getTaskId,
-                                tasks
-                                        .stream()
-                                        .map(TaskVo::getTaskId)
-                                        .collect(Collectors.toList()))
-        );
+        List<Long> list = tasks
+                .stream()
+                .map(TaskVo::getTaskId)
+                .collect(Collectors.toList());
+
+        List<TomatoClock> tomatoClocks = null;
+        if (CollectionUtils.isEmpty(list)) {
+            tomatoClocks = new ArrayList<>();
+        } else {
+            tomatoClocks = tomatoClockService.list(
+                    new LambdaQueryWrapper<>(TomatoClock.class)
+                            .in(TomatoClock::getTaskId, list)
+            );
+        }
 
         StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
 
