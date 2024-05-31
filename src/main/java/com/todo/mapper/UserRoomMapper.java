@@ -2,7 +2,6 @@ package com.todo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.todo.entity.UserRoom;
-import org.apache.ibatis.annotations.Param;
 
 /**
 * @author 28080

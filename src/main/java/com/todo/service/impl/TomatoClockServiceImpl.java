@@ -13,15 +13,14 @@ import com.todo.vo.Result;
 import com.todo.vo.TomatoClockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import static com.todo.entity.TomatoClock.Status.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -98,12 +97,24 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     @Override
     public Result<Map<Long, List<TomatoClockVo>>> statisticHistoryByTask(Long taskId) {
         Task task = taskMapper.selectById(taskId);
+
+        if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())){
+            throw new RuntimeException("任务不存在");
+        }
+
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getParentId, task.getParentId());
+        List<Task> tasks = taskMapper.selectList(wrapper);
+
+        Map<Long, String> taskIdName = new HashMap<>();
+        tasks.forEach(t -> taskIdName.put(t.getTaskId(), t.getTaskName()));
+
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .eq(TomatoClock::getParentId, task.getParentId())
                 .in(TomatoClock::getClockStatus, COMPLETED.getCode(), TERMINATED.getCode());
         Map<Long, List<TomatoClockVo>> statistic = this.list(queryWrapper)
                 .stream()
-                .map(TomatoClockVo::new)
+                .map(t -> new TomatoClockVo(t, taskIdName.get(t.getTaskId())))
                 .collect(Collectors.groupingBy(
                         t -> 1000 * LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
                 ));
@@ -115,18 +126,27 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         LambdaQueryWrapper<Task> taskQueryWrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUserId())
                 .in(Task::getTaskStatus, Task.Status.COMPLETED.getCode());
-        List<Long> parentIds = taskMapper.selectList(taskQueryWrapper)
+        List<Task> tasks = taskMapper.selectList(taskQueryWrapper);
+
+        Map<Long, String> taskIdName = new HashMap<>();
+        tasks.forEach(t -> taskIdName.put(t.getTaskId(), t.getTaskName()));
+
+        List<Long> parentIds = tasks
                 .stream()
                 .map(Task::getParentId)
                 .distinct()
                 .toList();
+
+        if (CollectionUtils.isEmpty(parentIds)){
+            return Result.success(new HashMap<>());
+        }
 
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
                 .in(TomatoClock::getParentId, parentIds)
                 .in(TomatoClock::getClockStatus, COMPLETED.getCode(), TERMINATED.getCode());
         Map<Long, List<TomatoClockVo>> statistic = this.list(queryWrapper)
                 .stream()
-                .map(TomatoClockVo::new)
+                .map(t -> new TomatoClockVo(t, taskIdName.get(t.getTaskId())))
                 .collect(Collectors.groupingBy(
                         t -> 1000 * LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
                 ));

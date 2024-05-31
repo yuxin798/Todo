@@ -1,7 +1,6 @@
 package com.todo.dto;
 
 import com.todo.constraints.AvatarLink;
-import com.todo.constraints.ValidName;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

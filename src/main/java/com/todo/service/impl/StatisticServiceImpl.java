@@ -55,18 +55,16 @@ public class StatisticServiceImpl implements StatisticService {
 
         tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
 
-        List<Long> list = tasks
-                .stream()
-                .map(TaskVo::getTaskId)
-                .collect(Collectors.toList());
-
-        List<TomatoClock> tomatoClocks = null;
-        if (CollectionUtils.isEmpty(list)) {
+        List<TomatoClock> tomatoClocks;
+        if (CollectionUtils.isEmpty(tasks)) {
             tomatoClocks = new ArrayList<>();
         } else {
             tomatoClocks = tomatoClockService.list(
                     new LambdaQueryWrapper<>(TomatoClock.class)
-                            .in(TomatoClock::getTaskId, list)
+                            .in(TomatoClock::getTaskId, tasks
+                                    .stream()
+                                    .map(TaskVo::getTaskId)
+                                    .collect(Collectors.toList()))
             );
         }
 
@@ -84,17 +82,20 @@ public class StatisticServiceImpl implements StatisticService {
 
         tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
 
-        List<TomatoClock> tomatoClocks = tomatoClockService.list(
-                new LambdaQueryWrapper<>(TomatoClock.class)
-                        .in(TomatoClock::getTaskId,
-                                tasks
-                                        .stream()
-                                        .map(TaskVo::getTaskId)
-                                        .collect(Collectors.toList()))
-        );
+        List<TomatoClock> tomatoClocks;
+        if (CollectionUtils.isEmpty(tasks)) {
+            tomatoClocks = new ArrayList<>();
+        } else {
+            tomatoClocks = tomatoClockService.list(
+                    new LambdaQueryWrapper<>(TomatoClock.class)
+                            .in(TomatoClock::getTaskId, tasks
+                                    .stream()
+                                    .map(TaskVo::getTaskId)
+                                    .collect(Collectors.toList()))
+            );
+        }
 
-        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
-        return statisticVo;
+        return getStatisticVo(tomatoClocks, timestamp);
     }
 
     @Override
@@ -113,6 +114,8 @@ public class StatisticServiceImpl implements StatisticService {
         List<Task> tasks = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getParentId, parentId)
         );
+
+
         tasks.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
 
         List<TomatoClock> tomatoClocks = tomatoClockService.list(
