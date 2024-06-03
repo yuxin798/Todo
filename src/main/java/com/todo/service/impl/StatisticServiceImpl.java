@@ -6,8 +6,10 @@ import com.todo.entity.Task;
 import com.todo.entity.TomatoClock;
 import com.todo.service.StatisticService;
 import com.todo.service.TomatoClockService;
+import com.todo.service.UserService;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.TaskVo;
+import com.todo.vo.UserVo;
 import com.todo.vo.statistic.DayTomatoStatistic;
 import com.todo.vo.statistic.StatisticVo;
 import com.todo.vo.statistic.TaskRatio;
@@ -32,11 +34,13 @@ public class StatisticServiceImpl implements StatisticService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final TomatoClockService tomatoClockService;
     private final HashMap<Long, String> taskIdNameMap;
+    private final UserService userService;
 
-    public StatisticServiceImpl(TaskServiceImpl taskServiceImpl, RedisTemplate<String, Object> redisTemplate, TomatoClockService tomatoClockService) {
+    public StatisticServiceImpl(TaskServiceImpl taskServiceImpl, RedisTemplate<String, Object> redisTemplate, TomatoClockService tomatoClockService, UserService userService) {
         this.taskServiceImpl = taskServiceImpl;
         this.redisTemplate = redisTemplate;
         this.tomatoClockService = tomatoClockService;
+        this.userService = userService;
         taskIdNameMap = new HashMap<>();
     }
 
@@ -105,6 +109,46 @@ public class StatisticServiceImpl implements StatisticService {
 
         redisTemplate.opsForValue().set(key, statisticVo, 5, TimeUnit.MINUTES);
         return statisticVo;
+    }
+
+    @Override
+    public List<UserVo> rankingList() {
+        Object obj = redisTemplate.opsForValue().get(RedisConstant.RANKING_LIST);
+        if (obj != null){
+            return (List<UserVo>) obj;
+        }
+
+        List<UserVo> userVos = rankingListStatistic();
+
+        redisTemplate.opsForValue().set(RedisConstant.RANKING_LIST, userVos, 25, TimeUnit.HOURS);
+        return userVos;
+    }
+
+    @NotNull
+    private List<UserVo> rankingListStatistic() {
+        return userService.list()
+                .stream()
+                .map(UserVo::new)
+                .peek(u -> {
+                    List<Long> parentIds = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
+                                    .eq(Task::getUserId, u.getUserId())
+                                    .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode()))
+                            .stream()
+                            .map(Task::getParentId)
+                            .distinct()
+                            .toList();
+                    AtomicLong tomatoDuration = new AtomicLong(0);
+                    if (!parentIds.isEmpty()) {
+                        tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
+                                        .in(TomatoClock::getParentId, parentIds)
+                                        .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
+                                .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
+                    }
+                    u.setTomatoDuration(tomatoDuration.get());
+                })
+                .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
+                .limit(50)
+                .toList();
     }
 
     @Override

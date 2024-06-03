@@ -2,6 +2,7 @@ package com.todo.controller;
 
 import com.todo.service.impl.StatisticServiceImpl;
 import com.todo.vo.Result;
+import com.todo.vo.UserVo;
 import com.todo.vo.statistic.StatisticVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 数据统计接口
@@ -53,5 +56,15 @@ public class StatisticController {
     public Result<StatisticVo> simpleStatisticByTask(@PathVariable Long taskId) {
         StatisticVo statisticVo = statisticServiceImpl.simpleStatisticByTask(taskId);
         return Result.success(statisticVo);
+    }
+
+    /*
+     * 排行榜
+     */
+    @Operation(summary = "排行榜")
+    @GetMapping("/rankingList")
+    public Result<List<UserVo>> rankingList() {
+        List<UserVo> userVos = statisticServiceImpl.rankingList();
+        return Result.success(userVos);
     }
 }

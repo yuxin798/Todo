@@ -1,6 +1,9 @@
 package com.todo.service;
 
+import com.todo.vo.UserVo;
 import com.todo.vo.statistic.StatisticVo;
+
+import java.util.List;
 
 public interface StatisticService {
     StatisticVo statisticByTask(Long taskId, Long timestamp);
@@ -10,4 +13,6 @@ public interface StatisticService {
     StatisticVo statistic(Long timestamp);
 
     StatisticVo statistic();
+
+    List<UserVo> rankingList();
 }
