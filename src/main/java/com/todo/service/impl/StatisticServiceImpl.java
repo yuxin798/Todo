@@ -76,8 +76,15 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public StatisticVo statistic() {
-        Long timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")) * 1000;
+        long timestamp = 1000 * LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
+        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId() + ":" + timestamp;
 
+        Object o = redisTemplate.opsForValue().get(key);
+        if (o != null) {
+            StatisticVo statisticVo = (StatisticVo) o;
+            statisticVo.setCached(true);
+            return statisticVo;
+        }
         List<TaskVo> tasks = taskServiceImpl.findAll();
 
         tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
@@ -94,8 +101,10 @@ public class StatisticServiceImpl implements StatisticService {
                                     .collect(Collectors.toList()))
             );
         }
+        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
 
-        return getStatisticVo(tomatoClocks, timestamp);
+        redisTemplate.opsForValue().set(key, statisticVo, 5, TimeUnit.MINUTES);
+        return statisticVo;
     }
 
     @Override
