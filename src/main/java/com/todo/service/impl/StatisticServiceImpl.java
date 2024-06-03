@@ -148,7 +148,7 @@ public class StatisticServiceImpl implements StatisticService {
                 })
                 .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
                 .limit(50)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
