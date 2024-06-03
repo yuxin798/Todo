@@ -22,5 +22,5 @@ public interface TaskCategoryService extends IService<TaskCategory> {
 
     Result<List<TaskVo>> getAllTasks(Long categoryId);
 
-    Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks();
+    Result<List<TaskCategoryVo>> getAllCategoryAndTasks();
 }

@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.todo.entity.Message;
 import com.todo.mapper.ChatMapper;
+import com.todo.mapper.UserMapper;
 import com.todo.service.ChatService;
 import com.todo.util.UserContextUtil;
+import com.todo.vo.MessageVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +22,13 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
     private final RoomChatServiceImpl roomChatService;
     private final UserChatServiceImpl userChatService;
 
+    private final UserMapper userMapper;
+
     @Autowired
-    public ChatServiceImplDelegator(RoomChatServiceImpl roomChatService, UserChatServiceImpl userChatService) {
+    public ChatServiceImplDelegator(RoomChatServiceImpl roomChatService, UserChatServiceImpl userChatService, UserMapper userMapper) {
         this.roomChatService = roomChatService;
         this.userChatService = userChatService;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -35,8 +40,8 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
     }
 
     @Override
-    public List<Message> receiveMessage(Long fromId, MessageType type) {
-        List<Message> messages = null;
+    public List<MessageVo> receiveMessage(Long fromId, MessageType type) {
+        List<MessageVo> messages = null;
         switch (type) {
             case TO_USER -> messages = userChatService.receiveMessage(fromId);
             case TO_ROOM -> messages = roomChatService.receiveMessage(fromId);
@@ -46,7 +51,7 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
     }
 
     @Override
-    public Page<Message> findMessagePage(Long otherId, Date beforeDateTime, int pageNum, int pageSize, MessageType type) {
+    public Page<MessageVo> findMessagePage(Long otherId, Date beforeDateTime, int pageNum, int pageSize, MessageType type) {
         Long userId = UserContextUtil.getUser().getUserId();
         LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>(Message.class)
                 .lt(Message::getSendTime, beforeDateTime)
@@ -60,7 +65,24 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
                 // 自习室间的消息
                 .and(type == MessageType.TO_ROOM, w -> w
                         .eq(Message::getToRoomId, otherId));
-        return baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        Page<Message> messagePage = baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+
+        List<MessageVo> messageVos = messagePage.getRecords()
+                .stream()
+                .map(MessageVo::new)
+                .peek(messageVo -> {
+                    messageVo.setFromUserName(userMapper.selectById(messageVo.getFromUserId()).getUserName());
+                    messageVo.setFromUserAvatar(userMapper.selectById(messageVo.getFromUserId()).getAvatar());
+                })
+                .toList();
+
+        Page<MessageVo> messageVoPage = new Page<>();
+        messageVoPage.setRecords(messageVos);
+        messageVoPage.setSize(messageVos.size());
+        messageVoPage.setTotal(messagePage.getTotal());
+        messageVoPage.setCurrent(messagePage.getCurrent());
+
+        return messageVoPage;
     }
 
     public boolean save(Message entity, MessageType type) {

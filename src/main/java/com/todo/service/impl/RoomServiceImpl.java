@@ -80,8 +80,12 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("自习室不存在");
         }
 
+        UserRoom userRoom = userRoomMapper.selectOne(new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, user.getUserId())
+                .eq(UserRoom::getRoomId, roomId));
+
         // roomDto的信息用户是可以篡改的
-        if (!user.getUserId().equals(room.getUserId())) {
+        if (userRoom == null) {
             throw new RuntimeException("没有权限生成邀请码");
         }
 
@@ -403,7 +407,6 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
 
         Room room = this.getOne(new LambdaQueryWrapper<>(Room.class)
                 .eq(Room::getRoomId, userRoom.getRoomId()));
-
         return new RoomVo(room);
     }
 }

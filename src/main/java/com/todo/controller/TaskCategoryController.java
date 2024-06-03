@@ -56,7 +56,7 @@ public class TaskCategoryController {
 
     @Operation(summary = "查询所有清单集合及每个清淡下面的所有任务")
     @GetMapping("/getAllCategoryAndTasks")
-    public Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks(){
+    public Result<List<TaskCategoryVo>> getAllCategoryAndTasks(){
         return taskCategoryService.getAllCategoryAndTasks();
     }
 }

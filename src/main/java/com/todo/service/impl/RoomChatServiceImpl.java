@@ -3,9 +3,13 @@ package com.todo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
+import com.todo.entity.Room;
+import com.todo.entity.User;
 import com.todo.entity.UserRoom;
+import com.todo.mapper.UserMapper;
 import com.todo.mapper.UserRoomMapper;
 import com.todo.util.UserContextUtil;
+import com.todo.vo.MessageVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -14,7 +18,10 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,12 +32,15 @@ public class RoomChatServiceImpl {
     private final RabbitTemplate rabbitTemplate;
     private final UserRoomMapper userRoomMapper;
 
-    public RoomChatServiceImpl(AmqpAdmin amqpAdmin, AmqpTemplate amqpTemplate, RoomServiceImpl roomServiceImpl, @Qualifier("rabbitTemplate") RabbitTemplate rabbitTemplate, UserRoomMapper userRoomMapper) {
+    private final UserMapper userMapper;
+
+    public RoomChatServiceImpl(AmqpAdmin amqpAdmin, AmqpTemplate amqpTemplate, RoomServiceImpl roomServiceImpl, @Qualifier("rabbitTemplate") RabbitTemplate rabbitTemplate, UserRoomMapper userRoomMapper, UserMapper userMapper) {
         this.amqpAdmin = amqpAdmin;
         this.amqpTemplate = amqpTemplate;
         this.roomServiceImpl = roomServiceImpl;
         this.rabbitTemplate = rabbitTemplate;
         this.userRoomMapper = userRoomMapper;
+        this.userMapper = userMapper;
     }
 
     public void sendMessage(Message message) {
@@ -86,7 +96,7 @@ public class RoomChatServiceImpl {
     }
 
 
-    public List<Message> receiveMessage(Long roomId) {
+    public List<MessageVo> receiveMessage(Long roomId) {
         Long userId = UserContextUtil.getUser().getUserId();
 
         QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userId);
@@ -109,7 +119,23 @@ public class RoomChatServiceImpl {
             msgs.add(message);
         }
 
-        return msgs;
+        List<Long> ids = userRoomMapper.selectList(new LambdaQueryWrapper<>(UserRoom.class)
+                        .eq(UserRoom::getRoomId, roomId))
+                .stream()
+                .map(UserRoom::getUserId)
+                .toList();
+
+        Map<Long, User> userMap = userMapper.selectBatchIds(ids)
+                .stream()
+                .collect(Collectors.toMap(User::getUserId, user -> user));
+
+        return msgs.stream()
+                .map(MessageVo::new)
+                .peek(messageVo -> {
+                    messageVo.setFromUserName(userMap.get(messageVo.getFromUserId()).getUserName());
+                    messageVo.setFromUserAvatar(userMap.get(messageVo.getFromUserId()).getAvatar());
+                })
+                .collect(Collectors.toList());
     }
 
     public boolean isExchangeExist(String exchangeName) {

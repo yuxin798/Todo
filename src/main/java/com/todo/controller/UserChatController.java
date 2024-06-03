@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.todo.entity.Message;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.service.impl.ChatServiceImplDelegator.MessageType;
+import com.todo.vo.MessageVo;
 import com.todo.vo.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,18 +29,18 @@ public class UserChatController {
     @Operation(summary = "接收消息")
     @GetMapping("/receive")
     public Result<?> receiveMessage(Long fromUserId) {
-        List<Message> message = chatServiceDelegator.receiveMessage(fromUserId, MessageType.TO_USER);
+        List<MessageVo> message = chatServiceDelegator.receiveMessage(fromUserId, MessageType.TO_USER);
         return Result.success(message);
     }
 
     @Operation(summary = "分页查询消息")
     @GetMapping("/{userId}/{pageNum}/{pageSize}")
-    public Result<Page<Message>> findMessagePage(
+    public Result<Page<MessageVo>> findMessagePage(
             @PathVariable Integer pageNum,
             @PathVariable Integer pageSize,
             @PathVariable Long userId,
             Long beforeDateTime) {
-        Page<Message> page = chatServiceDelegator.findMessagePage(
+        Page<MessageVo> page = chatServiceDelegator.findMessagePage(
                 userId,
                 new Date(beforeDateTime),
                 pageNum,

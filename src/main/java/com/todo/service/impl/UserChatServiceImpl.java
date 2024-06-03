@@ -2,7 +2,10 @@ package com.todo.service.impl;
 
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
+import com.todo.entity.User;
+import com.todo.mapper.UserMapper;
 import com.todo.util.UserContextUtil;
+import com.todo.vo.MessageVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.core.ParameterizedTypeReference;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,9 +21,12 @@ public class UserChatServiceImpl {
     private final AmqpAdmin amqpAdmin;
     private final AmqpTemplate amqpTemplate;
 
-    public UserChatServiceImpl(AmqpAdmin amqpAdmin, AmqpTemplate amqpTemplate) {
+    private final UserMapper userMapper;
+
+    public UserChatServiceImpl(AmqpAdmin amqpAdmin, AmqpTemplate amqpTemplate, UserMapper userMapper) {
         this.amqpAdmin = amqpAdmin;
         this.amqpTemplate = amqpTemplate;
+        this.userMapper = userMapper;
     }
 
     public void sendMessage(Message message) {
@@ -51,7 +58,7 @@ public class UserChatServiceImpl {
         log.info("==> send message success. roomId: {}, message: {}", suffix, message);
     }
 
-    public List<Message> receiveMessage(Long fromUserId) {
+    public List<MessageVo> receiveMessage(Long fromUserId) {
         Long userId = UserContextUtil.getUser().getUserId();
 
         QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_USER + fromUserId + ":" + userId);
@@ -67,6 +74,14 @@ public class UserChatServiceImpl {
             msgs.add(message);
         }
 
-        return msgs;
+        User user = userMapper.selectById(message.getFromUserId());
+
+        return msgs.stream()
+                .map(MessageVo::new)
+                .peek(messageVo -> {
+                    messageVo.setFromUserName(user.getUserName());
+                    messageVo.setFromUserName(user.getAvatar());
+                })
+                .collect(Collectors.toList());
     }
 }

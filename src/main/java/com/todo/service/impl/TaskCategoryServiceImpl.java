@@ -19,6 +19,7 @@ import com.todo.vo.TaskVo;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -112,16 +113,14 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
         return Result.success(taskCategoryVos);
     }
 
-    public Result<Map<TaskCategoryVo, List<TaskVo>>> getAllCategoryAndTasks() {
+    public Result<List<TaskCategoryVo>> getAllCategoryAndTasks() {
         LambdaQueryWrapper<TaskCategory> categoryQueryWrapper = new LambdaQueryWrapper<>(TaskCategory.class)
                 .eq(TaskCategory::getUserId, UserContextUtil.getUserId())
                 .orderByAsc(TaskCategory::getCreatedAt);
-        Map<Long, TaskCategoryVo> taskCategoryVoMap = this.list(categoryQueryWrapper)
+        List<TaskCategoryVo> taskCategoryVos = this.list(categoryQueryWrapper)
                 .stream()
                 .map(TaskCategoryVo::new)
-                .collect(Collectors.toMap(
-                        TaskCategoryVo::getCategoryId, taskCategoryVo -> taskCategoryVo)
-                );
+                .toList();
 
         LambdaQueryWrapper<Task> taskQueryWrapper = new LambdaQueryWrapper<>(Task.class)
                 .eq(Task::getUserId, UserContextUtil.getUserId())
@@ -135,12 +134,9 @@ public class TaskCategoryServiceImpl extends ServiceImpl<TaskCategoryMapper, Tas
                 .map(TaskVo::new)
                 .collect(Collectors.groupingBy(TaskVo::getCategoryId));
 
-        Map<TaskCategoryVo, List<TaskVo>> result = taskVos.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        entry -> taskCategoryVoMap.get(entry.getKey()), Map.Entry::getValue)
-                );
-        return Result.success(result);
+        taskCategoryVos.forEach( t -> t.setTaskVos(taskVos.get(t.getCategoryId()) == null ? new ArrayList<>() : taskVos.get(t.getCategoryId())));
+
+        return Result.success(taskCategoryVos);
     }
 
     @Override

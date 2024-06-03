@@ -1,15 +1,19 @@
 package com.todo.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.todo.dto.MessageDto;
 import com.todo.entity.Message;
 import com.todo.entity.User;
 import com.todo.service.RoomService;
+import com.todo.service.UserService;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.util.JwtUtil;
+import com.todo.util.UserContextUtil;
 import com.todo.util.websocket.JsonMessageDecoder;
 import com.todo.util.websocket.JsonMessageDtoDecoder;
 import com.todo.util.websocket.JsonMessageDtoEncoder;
 import com.todo.util.websocket.JsonMessageEncoder;
+import com.todo.vo.MessageVo;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +37,15 @@ import static com.todo.service.impl.ChatServiceImplDelegator.MessageType;
 )
 public class RoomChatWebSocketHandler {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
-
     private static RoomService roomService;
     private static ChatServiceImplDelegator chatServiceDelegator;
+    private static UserService userService;
 
     @Autowired
-    public void roomChatWebSocketController(RoomService roomService, ChatServiceImplDelegator chatService) {
+    public void roomChatWebSocketController(RoomService roomService, ChatServiceImplDelegator chatService, UserService userService) {
         RoomChatWebSocketHandler.roomService = roomService;
         RoomChatWebSocketHandler.chatServiceDelegator = chatService;
+        RoomChatWebSocketHandler.userService = userService;
     }
 
     @OnOpen
@@ -81,9 +86,9 @@ public class RoomChatWebSocketHandler {
     /**
      * 发送消息 实践表明 每次浏览器刷新 session会发生变化
      */
-    public static void sendMessage(Session session, Message message) {
+    public static void sendMessage(Session session, MessageVo messageVo) {
         try {
-            session.getBasicRemote().sendObject(message);
+            session.getBasicRemote().sendObject(messageVo);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (EncodeException e) {
@@ -100,7 +105,13 @@ public class RoomChatWebSocketHandler {
         roomService.listUsers(Long.valueOf(roomId)).forEach(user -> {
             Session s = sessionMap.get(user.getUserId());
             if (s != null) {
-                sendMessage(s, message);
+                User u = userService.getOne(new LambdaQueryWrapper<>(User.class)
+                        .eq(User::getUserId, message.getFromUserId()));
+                MessageVo messageVo = new MessageVo(message);
+                messageVo.setFromUserName(u.getUserName());
+                messageVo.setFromUserAvatar(u.getAvatar());
+
+                sendMessage(s, messageVo);
             } else {
                 message.setToUserId(user.getUserId());
                 chatServiceDelegator.sendMessage(message, MessageType.TO_ROOM);
