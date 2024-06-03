@@ -6,7 +6,6 @@ import com.todo.entity.User;
 import com.todo.service.RoomService;
 import com.todo.service.impl.ChatServiceImplDelegator;
 import com.todo.util.JwtUtil;
-import com.todo.util.UserContextUtil;
 import com.todo.util.websocket.JsonMessageDecoder;
 import com.todo.util.websocket.JsonMessageDtoDecoder;
 import com.todo.util.websocket.JsonMessageDtoEncoder;
@@ -32,7 +31,7 @@ import static com.todo.service.impl.ChatServiceImplDelegator.MessageType;
         encoders = { JsonMessageDtoEncoder.class, JsonMessageEncoder.class },
         decoders = { JsonMessageDtoDecoder.class, JsonMessageDecoder.class }
 )
-public class RoomChatWebSocketController {
+public class RoomChatWebSocketHandler {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
     private static RoomService roomService;
@@ -40,8 +39,8 @@ public class RoomChatWebSocketController {
 
     @Autowired
     public void roomChatWebSocketController(RoomService roomService, ChatServiceImplDelegator chatService) {
-        RoomChatWebSocketController.roomService = roomService;
-        RoomChatWebSocketController.chatServiceDelegator = chatService;
+        RoomChatWebSocketHandler.roomService = roomService;
+        RoomChatWebSocketHandler.chatServiceDelegator = chatService;
     }
 
     @OnOpen

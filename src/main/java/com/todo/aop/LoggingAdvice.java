@@ -6,7 +6,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -15,7 +14,7 @@ import java.util.Map;
 @Aspect
 @Component
 public class LoggingAdvice {
-    @Around("execution(public * com.todo.controller.*.*(..))")
+    @Around("execution(public * com.todo.controller.*Controller.*(..))")
     public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = null;
         try {
@@ -32,17 +31,17 @@ public class LoggingAdvice {
     private void logTemplate(ProceedingJoinPoint joinPoint, Object result) {
         log.debug(
                 """
-                
-                
+
+
                 ==> Method:
                 {}
-                
+
                 ==> Parameters:
                 {}
-                
+
                 ==> Return:
                 {}
-                
+
                 """,
                 logName(joinPoint),
                 logArgs(joinPoint),

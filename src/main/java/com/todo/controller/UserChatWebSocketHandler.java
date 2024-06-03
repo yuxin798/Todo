@@ -20,8 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -31,14 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
         encoders = { JsonMessageDtoEncoder.class, JsonMessageEncoder.class },
         decoders = { JsonMessageDtoDecoder.class, JsonMessageDecoder.class }
 )
-public class UserChatWebSocketController {
+public class UserChatWebSocketHandler {
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
     private static ChatServiceImplDelegator chatServiceDelegator;
 
     @Autowired
     public void roomChatWebSocketController(ChatServiceImplDelegator chatServiceDelegator) {
-        UserChatWebSocketController.chatServiceDelegator = chatServiceDelegator;
+        UserChatWebSocketHandler.chatServiceDelegator = chatServiceDelegator;
     }
 
     @OnOpen
