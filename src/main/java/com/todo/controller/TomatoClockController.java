@@ -3,6 +3,7 @@ package com.todo.controller;
 import com.todo.service.TomatoClockService;
 import com.todo.vo.Result;
 import com.todo.vo.TomatoClockVo;
+import com.todo.vo.statistic.StopReasonRatio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

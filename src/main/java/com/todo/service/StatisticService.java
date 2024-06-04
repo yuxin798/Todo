@@ -1,7 +1,9 @@
 package com.todo.service;
 
+import com.todo.vo.Result;
 import com.todo.vo.UserVo;
 import com.todo.vo.statistic.StatisticVo;
+import com.todo.vo.statistic.StopReasonRatio;
 
 import java.util.List;
 
@@ -15,4 +17,8 @@ public interface StatisticService {
     StatisticVo statistic();
 
     List<UserVo> rankingList();
+
+    List<UserVo> rankingListStatistic();
+
+    Result<List<StopReasonRatio>> statisticStopReason();
 }

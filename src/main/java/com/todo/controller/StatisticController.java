@@ -4,6 +4,7 @@ import com.todo.service.impl.StatisticServiceImpl;
 import com.todo.vo.Result;
 import com.todo.vo.UserVo;
 import com.todo.vo.statistic.StatisticVo;
+import com.todo.vo.statistic.StopReasonRatio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,5 +67,14 @@ public class StatisticController {
     public Result<List<UserVo>> rankingList() {
         List<UserVo> userVos = statisticServiceImpl.rankingList();
         return Result.success(userVos);
+    }
+
+    /*
+     * 统计中断原因
+     */
+    @Operation(summary = "统计中断原因")
+    @GetMapping("/stopReason")
+    public Result<List<StopReasonRatio>> statisticStopReason() {
+        return statisticServiceImpl.statisticStopReason();
     }
 }

@@ -220,6 +220,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         throw new RuntimeException("用户已注销");
     }
+
+    @Override
+    public Result<UserVo> getUserInfo(Long userId) {
+        User user = baseMapper.selectById(userId);
+        if (user == null){
+            throw new RuntimeException("用户不存在");
+        }
+        return Result.success(new UserVo(user));
+    }
 }
 
 

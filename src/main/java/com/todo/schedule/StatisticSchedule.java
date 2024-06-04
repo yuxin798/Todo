@@ -22,7 +22,7 @@ public class StatisticSchedule {
 
     @Scheduled(cron = "0 58 11 * * ?")
     public void statisticScheduleQuery() {
-        List<UserVo> userVos = statisticService.rankingList();
+        List<UserVo> userVos = statisticService.rankingListStatistic();
         redisTemplate.opsForValue().set(RedisConstant.RANKING_LIST_TEMP, userVos);
     }
 

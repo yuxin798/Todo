@@ -64,7 +64,8 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
                         .eq(Message::getToUserId, userId))
                 // 自习室间的消息
                 .and(type == MessageType.TO_ROOM, w -> w
-                        .eq(Message::getToRoomId, otherId));
+                        .eq(Message::getToRoomId, otherId))
+                .orderByDesc(Message::getSendTime);
         Page<Message> messagePage = baseMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
 
         List<MessageVo> messageVos = messagePage.getRecords()

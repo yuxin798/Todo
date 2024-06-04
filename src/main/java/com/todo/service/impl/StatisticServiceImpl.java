@@ -8,10 +8,12 @@ import com.todo.service.StatisticService;
 import com.todo.service.TomatoClockService;
 import com.todo.service.UserService;
 import com.todo.util.UserContextUtil;
+import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
 import com.todo.vo.UserVo;
 import com.todo.vo.statistic.DayTomatoStatistic;
 import com.todo.vo.statistic.StatisticVo;
+import com.todo.vo.statistic.StopReasonRatio;
 import com.todo.vo.statistic.TaskRatio;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -125,7 +127,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @NotNull
-    private List<UserVo> rankingListStatistic() {
+    public List<UserVo> rankingListStatistic() {
         return userService.list()
                 .stream()
                 .map(UserVo::new)
@@ -149,6 +151,40 @@ public class StatisticServiceImpl implements StatisticService {
                 .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
                 .limit(50)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Result<List<StopReasonRatio>> statisticStopReason() {
+        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
+                .eq(Task::getUserId, UserContextUtil.getUserId())
+                .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode());
+        List<Long> taskIds = taskServiceImpl.list(queryWrapper)
+                .stream()
+                .map(Task::getTaskId)
+                .distinct()
+                .toList();
+
+        if (CollectionUtils.isEmpty(taskIds)){
+            return Result.success(new ArrayList<>());
+        }
+
+        List<TomatoClock> tomatoClocks = tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
+                .in(TomatoClock::getTaskId, taskIds)
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.TERMINATED.getCode())
+                .isNotNull(TomatoClock::getStopReason)
+                .ne(TomatoClock::getStopReason, ""));
+
+        int sum = tomatoClocks.size();
+        List<StopReasonRatio> stopReasonRatios = tomatoClocks.stream()
+                .collect(Collectors.groupingBy(
+                        TomatoClock::getStopReason,
+                        Collectors.summingDouble(tc -> 1.0 / sum)
+                ))
+                .entrySet().stream()
+                .map(entry -> new StopReasonRatio(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        return Result.success(stopReasonRatios);
     }
 
     @Override

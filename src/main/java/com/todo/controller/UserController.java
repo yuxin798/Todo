@@ -128,6 +128,15 @@ public class UserController {
     }
 
     /*
+     * 获取其他用户信息
+     */
+    @Operation(summary = "获取其他用户信息")
+    @GetMapping("/getUserInfo/{userId}")
+    public Result<UserVo> getUserInfo(@PathVariable Long userId){
+        return userServiceImpl.getUserInfo(userId);
+    }
+
+    /*
      * 用户注销
      */
     @Operation(summary = "用户注销")

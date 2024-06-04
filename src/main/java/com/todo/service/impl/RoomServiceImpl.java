@@ -258,6 +258,12 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getRoomId, roomId);
         userRoomMapper.delete(wrapper);
+
+        //删除redis 自习室相关数据
+        Object o = redisTemplate.opsForValue().get(RedisConstant.ROOM_INVITATION_ID + roomId);
+        redisTemplate.opsForValue().getAndDelete(RedisConstant.ROOM_INVITATION_CODE + o);
+        redisTemplate.opsForValue().getAndDelete(RedisConstant.ROOM_INVITATION_CODE + roomId);
+        redisTemplate.opsForList().rightPop(RedisConstant.ROOM_REQUEST_JOIN + roomId);
     }
 
     @Override
