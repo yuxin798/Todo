@@ -17,9 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import static com.todo.entity.TomatoClock.Status.*;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -151,6 +149,45 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
                         t -> 1000 * LocalDate.ofInstant(t.getCompletedAt().toInstant(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"))
                 ));
         return Result.success(statistic);
+    }
+
+    @Override
+    public Result<?> advanceCompleteTask(Long taskId) {
+        dataVerificationAndAuthenticationByTaskId(taskId);
+
+        List<TomatoClock> tomatoClocks = this.list(new LambdaUpdateWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getTaskId, taskId)
+        );
+
+        boolean doing = tomatoClocks
+                .stream()
+                .anyMatch(t -> Objects.equals(t.getClockStatus(), DOING.getCode()));
+
+        if (doing){
+            List<TomatoClock> doingClocks = tomatoClocks.stream()
+                    .filter(t -> Objects.equals(t.getClockStatus(), DOING.getCode()))
+                    .toList();
+
+            Date startedAt = doingClocks.get(doingClocks.size() - 1).getStartedAt();
+            Date completedAt = new Date();
+            LocalDateTime startTime = startedAt.toInstant().atZone(ZoneId.of("+8")).toLocalDateTime();
+            LocalDateTime endTime = completedAt.toInstant().atZone(ZoneId.of("+8")).toLocalDateTime();
+            Duration duration = Duration.between(startTime, endTime);
+
+            LambdaUpdateWrapper<TomatoClock> updateWrapper = new LambdaUpdateWrapper<>(TomatoClock.class)
+                    .set(TomatoClock::getClockStatus, COMPLETED.getCode())
+                    .set(TomatoClock::getCompletedAt, completedAt)
+                    .set(TomatoClock::getClockDuration, duration.toMinutes())
+                    .eq(TomatoClock::getTaskId, taskId)
+                    .eq(TomatoClock::getClockStatus, DOING.getCode());
+            this.update(updateWrapper);
+        }
+
+        this.remove(new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getClockStatus, NOT_STARTED.getCode())
+                .eq(TomatoClock::getTaskId, taskId)
+        );
+        return Result.success();
     }
 
     /**

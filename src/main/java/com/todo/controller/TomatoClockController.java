@@ -47,6 +47,12 @@ public class TomatoClockController {
         return tomatoClockService.stopTomatoClock(taskId, stopReason);
     }
 
+    @Operation(summary = "提前完成任务")
+    @PutMapping("/advanceCompleteTask/{taskId}")
+    public Result<?> advanceCompleteTask(@PathVariable Long taskId) {
+        return tomatoClockService.advanceCompleteTask(taskId);
+    }
+
     @Operation(summary = "查询一个番茄钟")
     @GetMapping("/findTomatoClock/{clockId}")
     public Result<TomatoClockVo> findTomatoClock(@PathVariable Long clockId) {

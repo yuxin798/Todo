@@ -1,6 +1,5 @@
 package com.todo.vo;
 
-import com.todo.dto.MessageDto;
 import com.todo.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +16,7 @@ public class MessageVo {
     private Long toUserId;
     private Long toRoomId;
     private String content;
+    private Integer type;
     private Date sendTime;
     private String fromUserName;
     private String fromUserAvatar;
@@ -27,6 +27,7 @@ public class MessageVo {
         this.toUserId = message.getToUserId();
         this.toRoomId = message.getToRoomId();
         this.content = message.getContent();
+        this.type = message.getType();
         this.sendTime = message.getSendTime();
     }
 }

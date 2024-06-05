@@ -3,7 +3,6 @@ package com.todo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.todo.constant.AmqpConstant;
 import com.todo.entity.Message;
-import com.todo.entity.Room;
 import com.todo.entity.User;
 import com.todo.entity.UserRoom;
 import com.todo.mapper.UserMapper;
@@ -18,7 +17,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

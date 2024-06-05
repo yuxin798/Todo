@@ -117,7 +117,10 @@ public class StatisticServiceImpl implements StatisticService {
     public List<UserVo> rankingList() {
         Object obj = redisTemplate.opsForValue().get(RedisConstant.RANKING_LIST);
         if (obj != null){
-            return (List<UserVo>) obj;
+            if (obj instanceof List<?>){
+                return (List<UserVo>) obj;
+            }
+
         }
 
         List<UserVo> userVos = rankingListStatistic();

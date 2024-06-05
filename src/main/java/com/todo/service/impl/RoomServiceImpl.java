@@ -20,10 +20,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -161,6 +158,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                     }
                     u.setTomatoDuration(tomatoDuration.get());
                 })
+                .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
                 .toList();
     }
 

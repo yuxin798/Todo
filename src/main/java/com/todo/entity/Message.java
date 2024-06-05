@@ -21,6 +21,7 @@ public class Message {
     private Long toUserId;
     private Long toRoomId;
     private String content;
+    private Integer type;
     private Date sendTime;
     private Date createdAt;
     private Date updatedAt;
@@ -31,6 +32,7 @@ public class Message {
         this.toUserId = messageDto.getToUserId();
         this.toRoomId = messageDto.getToRoomId();
         this.content = messageDto.getContent();
+        this.type = messageDto.getType();
         this.setSendTime(new Date());
     }
 }

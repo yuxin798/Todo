@@ -12,4 +12,5 @@ public class MessageDto {
     private Long toUserId;
     private Long toRoomId;
     private String content;
+    private Integer type;
 }

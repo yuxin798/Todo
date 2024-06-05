@@ -32,4 +32,6 @@ public interface TomatoClockService extends IService<TomatoClock> {
     Result<Map<Long, List<TomatoClockVo>>> statisticHistoryByTask(Long taskId);
 
     Result<Map<Long, List<TomatoClockVo>>> statisticHistoryByUser();
+
+    Result<?> advanceCompleteTask(Long taskId);
 }
