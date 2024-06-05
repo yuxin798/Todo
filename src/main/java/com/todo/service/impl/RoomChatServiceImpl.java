@@ -47,6 +47,13 @@ public class RoomChatServiceImpl {
         Long userId = UserContextUtil.getUser().getUserId();
         Long roomId = message.getToRoomId();
 
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
+                .eq(UserRoom::getUserId, userId)
+                .eq(UserRoom::getRoomId, roomId);
+        if (userRoomMapper.selectOne(wrapper) == null) {
+            throw new RuntimeException("用户已不在自习室中");
+        }
+
         QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userId);
 
         if (queueInfo == null) {
@@ -99,15 +106,15 @@ public class RoomChatServiceImpl {
     public List<MessageVo> receiveMessage(Long roomId) {
         Long userId = UserContextUtil.getUser().getUserId();
 
-        QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userId);
-        if (queueInfo == null) return new ArrayList<>();
-
         LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>(UserRoom.class)
                 .eq(UserRoom::getUserId, userId)
                 .eq(UserRoom::getRoomId, roomId);
         if (userRoomMapper.selectOne(wrapper) == null) {
             throw new RuntimeException("用户已不在自习室中");
         }
+
+        QueueInformation queueInfo = amqpAdmin.getQueueInfo(AmqpConstant.QUEUE_CHAT_ROOM + roomId + ":" + userId);
+        if (queueInfo == null) return new ArrayList<>();
 
         ArrayList<Message> msgs = new ArrayList<>();
         Message message;
@@ -119,8 +126,10 @@ public class RoomChatServiceImpl {
             msgs.add(message);
         }
 
-        List<Long> ids = userRoomMapper.selectList(new LambdaQueryWrapper<>(UserRoom.class)
-                        .eq(UserRoom::getRoomId, roomId))
+        List<Long> ids = userRoomMapper.selectList(
+                new LambdaQueryWrapper<>(UserRoom.class)
+                        .eq(UserRoom::getRoomId, roomId)
+                )
                 .stream()
                 .map(UserRoom::getUserId)
                 .toList();

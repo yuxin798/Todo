@@ -143,19 +143,19 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .stream()
                 .map(UserVo::new)
                 .peek(u -> {
-                    List<Long> parentIds = taskMapper.selectList(new LambdaQueryWrapper<>(Task.class)
+                    List<Long> taskIds = taskMapper.selectList(new LambdaQueryWrapper<>(Task.class)
                                     .eq(Task::getUserId, u.getUserId())
                                     .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode())
                                     .ge(Task::getCreatedAt, start)
                                     .le(Task::getCreatedAt, end))
                             .stream()
-                            .map(Task::getParentId)
+                            .map(Task::getTaskId)
                             .distinct()
                             .toList();
                     AtomicLong tomatoDuration = new AtomicLong(0);
-                    if (!parentIds.isEmpty()){
+                    if (!taskIds.isEmpty()){
                         tomatoClockMapper.selectList(new LambdaQueryWrapper<>(TomatoClock.class)
-                                        .in(TomatoClock::getParentId, parentIds)
+                                        .in(TomatoClock::getTaskId, taskIds)
                                         .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
                                 .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
                     }

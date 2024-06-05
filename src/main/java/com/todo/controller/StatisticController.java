@@ -3,6 +3,7 @@ package com.todo.controller;
 import com.todo.service.impl.StatisticServiceImpl;
 import com.todo.vo.Result;
 import com.todo.vo.UserVo;
+import com.todo.vo.statistic.DayTomatoStatistic;
 import com.todo.vo.statistic.StatisticVo;
 import com.todo.vo.statistic.StopReasonRatio;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,13 @@ public class StatisticController {
     public Result<StatisticVo> statistic() {
         StatisticVo statisticVo = statisticServiceImpl.statistic();
         return Result.success(statisticVo);
+    }
+
+    @Operation(summary = "获得简化版今日统计数据")
+    @GetMapping("/simpleStatisticToday")
+    public Result<DayTomatoStatistic> simpleStatisticToday() {
+        DayTomatoStatistic dayTomatoStatistic = statisticServiceImpl.simpleStatisticToday();
+        return Result.success(dayTomatoStatistic);
     }
 
     @Operation(summary = "每个任务的统计数据")

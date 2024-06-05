@@ -12,10 +12,7 @@ import com.todo.vo.MessageVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> implements ChatService {
@@ -75,6 +72,7 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
                     messageVo.setFromUserName(userMapper.selectById(messageVo.getFromUserId()).getUserName());
                     messageVo.setFromUserAvatar(userMapper.selectById(messageVo.getFromUserId()).getAvatar());
                 })
+                .sorted(Comparator.comparing(MessageVo::getSendTime))
                 .toList();
 
         Page<MessageVo> messageVoPage = new Page<>();
@@ -92,7 +90,7 @@ public class ChatServiceImplDelegator extends ServiceImpl<ChatMapper, Message> i
             case TO_USER -> entity.setToRoomId(null);
             case TO_ROOM -> entity.setToUserId(null);
         }
-        return super.save(entity);
+        return this.save(entity);
     }
 
     public enum MessageType {

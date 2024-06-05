@@ -1,5 +1,6 @@
 package com.todo.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.todo.dto.MessageDto;
@@ -14,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Message {
-    @TableId
+    @TableId(value = "message_id", type = IdType.AUTO)
     private Long messageId;
     private Long fromUserId;
     private Long toUserId;

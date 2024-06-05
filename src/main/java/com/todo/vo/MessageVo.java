@@ -22,6 +22,7 @@ public class MessageVo {
     private String fromUserAvatar;
 
     public MessageVo(Message message) {
+        this.messageId = message.getMessageId();
         this.fromUserId = message.getFromUserId();
         this.toUserId = message.getToUserId();
         this.toRoomId = message.getToRoomId();

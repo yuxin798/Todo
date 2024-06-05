@@ -156,8 +156,7 @@ public class StatisticServiceImpl implements StatisticService {
     @Override
     public Result<List<StopReasonRatio>> statisticStopReason() {
         LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUserId())
-                .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode());
+                .eq(Task::getUserId, UserContextUtil.getUserId());
         List<Long> taskIds = taskServiceImpl.list(queryWrapper)
                 .stream()
                 .map(Task::getTaskId)
@@ -185,6 +184,38 @@ public class StatisticServiceImpl implements StatisticService {
                 .collect(Collectors.toList());
 
         return Result.success(stopReasonRatios);
+    }
+
+    @Override
+    public DayTomatoStatistic simpleStatisticToday() {
+        LocalDate date = LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8"));
+        Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));
+        Date end = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"))));
+
+        List<Long> taskIds = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
+                        .eq(Task::getUserId, UserContextUtil.getUserId())
+                        .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode())
+                        .ge(Task::getCreatedAt, start)
+                        .le(Task::getCreatedAt, end))
+                .stream()
+                .map(Task::getTaskId)
+                .distinct()
+                .toList();
+        if (taskIds.isEmpty()) {
+            return new DayTomatoStatistic();
+        }
+
+        List<TomatoClock> tomatoClocks = tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
+                .in(TomatoClock::getTaskId, taskIds)
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()));
+
+        AtomicLong tomatoDuration = new AtomicLong(0);
+        tomatoClocks.forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
+
+        DayTomatoStatistic dayTomatoStatistic = new DayTomatoStatistic();
+        dayTomatoStatistic.setTomatoTimes(tomatoClocks.size());
+        dayTomatoStatistic.setTomatoDuration(tomatoDuration.get());
+        return dayTomatoStatistic;
     }
 
     @Override

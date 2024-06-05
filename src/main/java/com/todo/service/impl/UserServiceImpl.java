@@ -208,7 +208,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null){
             throw new RuntimeException("用户已注销");
         }
-        return Result.success(new UserVo(user));
+        UserVo userVo = new UserVo(user);
+        userVo.setEmail(user.getEmail());
+        return Result.success(userVo);
     }
 
     @Override

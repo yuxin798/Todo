@@ -13,6 +13,7 @@ import java.util.Date;
 public class UserVo {
     private Long userId;
     private String userName;
+    private String email;
     private String avatar;
     private String signature;
     private Date createdAt;
