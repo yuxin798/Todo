@@ -48,7 +48,8 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public StatisticVo statistic(Long timestamp) {
-        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId() + ":" + timestamp;
+        long beginTimestamp = 1000 * LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
+        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId() + ":" + beginTimestamp;
 
         Object o = redisTemplate.opsForValue().get(key);
         if (o != null) {
@@ -67,6 +68,7 @@ public class StatisticServiceImpl implements StatisticService {
         } else {
             tomatoClocks = tomatoClockService.list(
                     new LambdaQueryWrapper<>(TomatoClock.class)
+                            .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
                             .in(TomatoClock::getTaskId, tasks
                                     .stream()
                                     .map(TaskVo::getTaskId)
@@ -101,6 +103,7 @@ public class StatisticServiceImpl implements StatisticService {
         } else {
             tomatoClocks = tomatoClockService.list(
                     new LambdaQueryWrapper<>(TomatoClock.class)
+                            .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
                             .in(TomatoClock::getTaskId, tasks
                                     .stream()
                                     .map(TaskVo::getTaskId)
@@ -135,20 +138,11 @@ public class StatisticServiceImpl implements StatisticService {
                 .stream()
                 .map(UserVo::new)
                 .peek(u -> {
-                    List<Long> parentIds = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
-                                    .eq(Task::getUserId, u.getUserId())
-                                    .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode()))
-                            .stream()
-                            .map(Task::getParentId)
-                            .distinct()
-                            .toList();
                     AtomicLong tomatoDuration = new AtomicLong(0);
-                    if (!parentIds.isEmpty()) {
-                        tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
-                                        .in(TomatoClock::getParentId, parentIds)
-                                        .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
-                                .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
-                    }
+                    tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
+                                    .eq(TomatoClock::getUserId, u.getUserId())
+                                    .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
+                            .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
                     u.setTomatoDuration(tomatoDuration.get());
                 })
                 .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
@@ -158,25 +152,18 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public Result<List<StopReasonRatio>> statisticStopReason() {
-        LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getUserId, UserContextUtil.getUserId());
-        List<Long> taskIds = taskServiceImpl.list(queryWrapper)
-                .stream()
-                .map(Task::getTaskId)
-                .distinct()
-                .toList();
-
-        if (CollectionUtils.isEmpty(taskIds)){
-            return Result.success(new ArrayList<>());
-        }
-
         List<TomatoClock> tomatoClocks = tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
-                .in(TomatoClock::getTaskId, taskIds)
+                .eq(TomatoClock::getUserId, UserContextUtil.getUserId())
                 .eq(TomatoClock::getClockStatus, TomatoClock.Status.TERMINATED.getCode())
                 .isNotNull(TomatoClock::getStopReason)
                 .ne(TomatoClock::getStopReason, ""));
 
         int sum = tomatoClocks.size();
+
+        if (sum == 0){
+            return Result.success(new ArrayList<>());
+        }
+
         List<StopReasonRatio> stopReasonRatios = tomatoClocks.stream()
                 .collect(Collectors.groupingBy(
                         TomatoClock::getStopReason,
@@ -195,22 +182,11 @@ public class StatisticServiceImpl implements StatisticService {
         Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));
         Date end = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"))));
 
-        List<Long> taskIds = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
-                        .eq(Task::getUserId, UserContextUtil.getUserId())
-                        .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode())
-                        .ge(Task::getCreatedAt, start)
-                        .le(Task::getCreatedAt, end))
-                .stream()
-                .map(Task::getTaskId)
-                .distinct()
-                .toList();
-        if (taskIds.isEmpty()) {
-            return new DayTomatoStatistic();
-        }
-
         List<TomatoClock> tomatoClocks = tomatoClockService.list(new LambdaQueryWrapper<>(TomatoClock.class)
-                .in(TomatoClock::getTaskId, taskIds)
-                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()));
+                .eq(TomatoClock::getUserId, UserContextUtil.getUserId())
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
+                .ge(TomatoClock::getCreatedAt, start)
+                .le(TomatoClock::getCreatedAt, end));
 
         AtomicLong tomatoDuration = new AtomicLong(0);
         tomatoClocks.forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
@@ -223,7 +199,8 @@ public class StatisticServiceImpl implements StatisticService {
 
     @Override
     public StatisticVo statisticByTask(Long taskId, Long timestamp) {
-        String key = RedisConstant.TASK_STATISTIC + taskId + ":" + timestamp;
+        long beginTimestamp = 1000 * LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
+        String key = RedisConstant.TASK_STATISTIC + taskId + ":" + beginTimestamp;
 
         Object o = redisTemplate.opsForValue().get(key);
         if (o != null) {
@@ -233,9 +210,14 @@ public class StatisticServiceImpl implements StatisticService {
         }
 
         Task task = taskServiceImpl.getById(taskId);
-        Long parentId = task.getParentId();
-        List<Task> tasks = taskServiceImpl.list(new LambdaQueryWrapper<>(Task.class)
-                .eq(Task::getParentId, parentId)
+
+        if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())){
+            throw new RuntimeException("不存在该任务");
+        }
+
+        List<Task> tasks = taskServiceImpl.list(
+                new LambdaQueryWrapper<>(Task.class)
+                        .eq(Task::getParentId, task.getParentId())
         );
 
 
@@ -255,18 +237,20 @@ public class StatisticServiceImpl implements StatisticService {
     public StatisticVo simpleStatisticByTask(Long taskId) {
         Task task = taskServiceImpl.getById(taskId);
 
-        StatisticVo statisticVo = new StatisticVo();
+        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
+                .eq(TomatoClock::getUserId, task.getUserId())
+                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode());
+
         AtomicInteger tomatoTimes = new AtomicInteger(0);
         AtomicLong tomatoDuration = new AtomicLong(0);
 
-        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getParentId, task.getParentId())
-                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode());
         tomatoClockService.list(queryWrapper)
                 .forEach(t -> {
                     tomatoTimes.addAndGet(1);
                     tomatoDuration.addAndGet(t.getClockDuration());
                 });
+
+        StatisticVo statisticVo = new StatisticVo();
         statisticVo.setTomatoTimes(tomatoTimes.get());
         statisticVo.setTomatoDuration(tomatoDuration.get());
         return statisticVo;
@@ -285,7 +269,6 @@ public class StatisticServiceImpl implements StatisticService {
 
         // 每天的任务分组
         HashMap<Long, List<TomatoClock>> dayTomatoTmp = tomatoClocks.stream()
-                .filter(t -> t.getClockStatus() == 0)
                 .peek(t -> {
                     tomatoDuration.addAndGet(t.getClockDuration());
                     tomatoTimes.addAndGet(1);

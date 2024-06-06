@@ -14,7 +14,6 @@ public class TomatoClockVo {
     private Long clockId;
     private Long taskId;
     private Long parentId;
-    private Integer sequence;
     private Integer clockDuration;
     private Integer clockStatus;
     private String stopReason;
@@ -27,7 +26,6 @@ public class TomatoClockVo {
         this.clockId = tomatoClock.getClockId();
         this.taskId = tomatoClock.getTaskId();
         this.parentId = tomatoClock.getParentId();
-        this.sequence = tomatoClock.getSequence();
         this.clockDuration = tomatoClock.getClockDuration();
         this.clockStatus = tomatoClock.getClockStatus();
         this.stopReason = tomatoClock.getStopReason();
@@ -39,7 +37,6 @@ public class TomatoClockVo {
         this.clockId = tomatoClock.getClockId();
         this.taskId = tomatoClock.getTaskId();
         this.parentId = tomatoClock.getParentId();
-        this.sequence = tomatoClock.getSequence();
         this.clockDuration = tomatoClock.getClockDuration();
         this.clockStatus = tomatoClock.getClockStatus();
         this.stopReason = tomatoClock.getStopReason();

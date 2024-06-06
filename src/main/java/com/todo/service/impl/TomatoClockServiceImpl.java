@@ -47,32 +47,25 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         String[] split = task.getEstimate().split(",");
         int estimate = Integer.parseInt(split[split.length - 1]);
 
-        // 获取当前任务已经完成的番茄钟数量
-        LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getTaskId, taskId);
-        int count = (int) count(queryWrapper);
-
+        List<TomatoClock> tomatoClocks = new ArrayList<>();
         IntStream.rangeClosed(1, estimate).forEach(i -> {
-            TomatoClock tomatoClock = new TomatoClock(taskId, i + count, clockDuration, task.getParentId());
+            TomatoClock tomatoClock = new TomatoClock(taskId, clockDuration, task.getParentId(), task.getUserId());
             if (i == 1) {
+                Date startedAt = new Date();
                 // 为第一个番茄钟添加 初始值
-                tomatoClock.setStartedAt(new Date());
+                tomatoClock.setStartedAt(startedAt);
                 tomatoClock.clockStatusEnum(DOING);
                 taskMapper.update(new LambdaUpdateWrapper<>(Task.class)
-                        .set(Task::getStartedAt, new Date())
+                        .set(Task::getStartedAt, startedAt)
                         .eq(Task::getTaskId, taskId)
                 );
             }
             this.save(tomatoClock);
+            tomatoClocks.add(tomatoClock);
         });
 
         // 返回新增的番茄钟列表
-        return Result.success(
-                this.list(queryWrapper.last(" limit " + count + "," + estimate))
-                        .stream()
-                        .map(TomatoClockVo::new)
-                        .toList()
-        );
+        return Result.success(tomatoClocks.stream().map(TomatoClockVo::new).collect(Collectors.toList()));
     }
 
     @Override
@@ -257,8 +250,7 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
         dataVerificationAndAuthenticationByTaskId(taskId);
         return Result.success(
                 this.list(new LambdaQueryWrapper<TomatoClock>()
-                                .eq(TomatoClock::getTaskId, taskId)
-                                .orderByAsc(TomatoClock::getSequence))
+                                .eq(TomatoClock::getTaskId, taskId))
                         .stream()
                         .map(TomatoClockVo::new)
                         .toList()
@@ -277,28 +269,26 @@ public class TomatoClockServiceImpl extends ServiceImpl<TomatoClockMapper, Tomat
     // 根据番茄钟Id进行数据校验及身份认证
     private TomatoClock dataVerificationAndAuthenticationByClockId(Long clockId) {
         TomatoClock tomatoClock = this.getById(clockId);
-        if (tomatoClock == null) {
+        if (tomatoClock == null || !tomatoClock.getUserId().equals(UserContextUtil.getUserId())) {
             throw new RuntimeException("不存在该番茄钟");
         }
+
         Task task = taskMapper.selectById(tomatoClock.getTaskId());
         if (task == null) {
             throw new RuntimeException("不存在该任务");
         }
-        if (!task.getUserId().equals(UserContextUtil.getUserId())) {
-            throw new RuntimeException("没有权限");
-        }
+
         return tomatoClock;
     }
 
     // 根据任务Id进行数据校验及身份认证
     private Task dataVerificationAndAuthenticationByTaskId(Long taskId) {
         Task task = taskMapper.selectById(taskId);
-        if (task == null) {
+
+        if (task == null || !task.getUserId().equals(UserContextUtil.getUserId())) {
             throw new RuntimeException("不存在该任务");
         }
-        if (!task.getUserId().equals(UserContextUtil.getUser().getUserId())) {
-            throw new RuntimeException("没有权限");
-        }
+
         return task;
     }
 }

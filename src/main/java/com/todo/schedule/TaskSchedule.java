@@ -46,9 +46,9 @@ public class TaskSchedule {
                     }
                     t.setTaskId(null);
                     t.setCreatedAt(new Date(t.getCreatedAt().getTime() + 3600 * 24 * 1000));
-                    t.setTodayTotalTimes(0);
                     t.setStartedAt(null);
                     t.setCompletedAt(null);
+                    t.setUpdatedAt(null);
                 })
                 .toList();
         taskService.saveBatch(tasks);

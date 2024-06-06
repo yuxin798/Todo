@@ -127,7 +127,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             Date tomorrowDate = Date.from(localDateTime.plusDays(1).toInstant(ZoneOffset.of("+8")));
             task.setCreatedAt(tomorrowDate);
             task.setTaskId(null);
-            task.setTodayTotalTimes(0);
             baseMapper.insert(task);
         }
 
@@ -203,7 +202,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             tomatoClockMapper.insert(tomatoClock);
             Date now = new Date();
             this.update(new LambdaUpdateWrapper<>(Task.class)
-                            .set(Task::getTodayTotalTimes, task.getTodayTotalTimes() + 1)
                             .set(Task::getTaskStatus, COMPLETED.getCode())
                             .set(Task::getStartedAt, now)
                             .set(Task::getCompletedAt, now)
@@ -212,14 +210,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             return Result.success();
         }
 
-        LocalDate date = LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8"));
-        Date start = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"))));
-        Date end = Date.from(Instant.ofEpochSecond(date.toEpochSecond(LocalTime.MAX, ZoneOffset.of("+8"))));
-
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getParentId, task.getParentId())
+                .eq(TomatoClock::getTaskId, taskId)
                 .ge(TomatoClock::getStartedAt, task.getStartedAt())
-                .le(TomatoClock::getCompletedAt, end);
+                .le(TomatoClock::getCompletedAt, new Date());
         List<TomatoClock> tomatoClockList = tomatoClockMapper.selectList(queryWrapper);
 
         if (CollectionUtils.isEmpty(tomatoClockList)) {
@@ -256,17 +250,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
             );
         }
 
-        Long completedTimes = tomatoClockMapper.selectCount(new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getParentId, task.getParentId())
-                .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
-                .ge(TomatoClock::getStartedAt, start)
-                .le(TomatoClock::getCompletedAt, end)
-        );
-
         this.update(new LambdaUpdateWrapper<>(Task.class)
                 .set(Task::getCompletedAt, completedAt)
                 .set(Task::getTaskStatus, COMPLETED.getCode())
-                .set(Task::getTodayTotalTimes, completedTimes)
                 .eq(Task::getTaskId, taskId));
         return Result.success();
     }

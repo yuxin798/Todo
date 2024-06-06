@@ -89,12 +89,6 @@ public class Task implements Serializable {
     private Long categoryId;
 
     /**
-     *
-     */
-    @TableField(value = "today_total_times")
-    private Integer todayTotalTimes;
-
-    /**
      * 
      */
     @TableField(value = "task_status")
@@ -158,12 +152,7 @@ public class Task implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return Objects.equals(taskId, task.taskId) && Objects.equals(userId, task.userId) && Objects.equals(parentId, task.parentId) && Objects.equals(taskName, task.taskName) && Objects.equals(type, task.type) && Objects.equals(clockDuration, task.clockDuration) && Objects.equals(remark, task.remark) && Objects.equals(estimate, task.estimate) && Objects.equals(restTime, task.restTime) && Objects.equals(again, task.again) && Objects.equals(categoryId, task.categoryId) && Objects.equals(todayTotalTimes, task.todayTotalTimes) && Objects.equals(taskStatus, task.taskStatus) && Objects.equals(background, task.background) && Objects.equals(startedAt, task.startedAt) && Objects.equals(completedAt, task.completedAt) && Objects.equals(createdAt, task.createdAt) && Objects.equals(updatedAt, task.updatedAt) && Objects.equals(deleted, task.deleted);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(taskId, userId, parentId, taskName, type, clockDuration, remark, estimate, restTime, again, categoryId, todayTotalTimes, taskStatus, background, startedAt, completedAt, createdAt, updatedAt, deleted);
+        return Objects.equals(taskId, task.taskId) && Objects.equals(userId, task.userId) && Objects.equals(parentId, task.parentId) && Objects.equals(taskName, task.taskName) && Objects.equals(type, task.type) && Objects.equals(clockDuration, task.clockDuration) && Objects.equals(remark, task.remark) && Objects.equals(estimate, task.estimate) && Objects.equals(restTime, task.restTime) && Objects.equals(again, task.again) && Objects.equals(categoryId, task.categoryId) && Objects.equals(taskStatus, task.taskStatus) && Objects.equals(background, task.background) && Objects.equals(startedAt, task.startedAt) && Objects.equals(completedAt, task.completedAt) && Objects.equals(createdAt, task.createdAt) && Objects.equals(updatedAt, task.updatedAt) && Objects.equals(deleted, task.deleted);
     }
 
     @Override
@@ -171,6 +160,7 @@ public class Task implements Serializable {
         return "Task{" +
                 "taskId=" + taskId +
                 ", userId=" + userId +
+                ", parentId=" + parentId +
                 ", taskName='" + taskName + '\'' +
                 ", type=" + type +
                 ", clockDuration=" + clockDuration +
@@ -179,7 +169,6 @@ public class Task implements Serializable {
                 ", restTime=" + restTime +
                 ", again=" + again +
                 ", categoryId=" + categoryId +
-                ", todayTotalTimes=" + todayTotalTimes +
                 ", taskStatus=" + taskStatus +
                 ", background='" + background + '\'' +
                 ", startedAt=" + startedAt +
@@ -188,6 +177,11 @@ public class Task implements Serializable {
                 ", updatedAt=" + updatedAt +
                 ", deleted=" + deleted +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskId, userId, parentId, taskName, type, clockDuration, remark, estimate, restTime, again, categoryId, taskStatus, background, startedAt, completedAt, createdAt, updatedAt, deleted);
     }
 
     public Task.Status taskStatusEnum() {

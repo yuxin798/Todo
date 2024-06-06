@@ -43,7 +43,6 @@ public class TaskVo {
         estimate = ListUtil.commaSeparateStringToList(task.getEstimate(), Integer::valueOf);
         restTime = task.getRestTime();
         again = task.getAgain();
-        todayTotalTimes = task.getTodayTotalTimes();
         categoryId = task.getCategoryId();
         taskStatus = task.getTaskStatus();
         background = task.getBackground();

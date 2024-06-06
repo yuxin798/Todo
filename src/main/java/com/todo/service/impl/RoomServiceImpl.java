@@ -37,14 +37,12 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     private final UserRoomMapper userRoomMapper;
     private final UserMapper userMapper;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final TaskMapper taskMapper;
     private final TomatoClockMapper tomatoClockMapper;
 
-    public RoomServiceImpl(UserRoomMapper userRoomMapper, UserMapper userMapper, RedisTemplate<String, Object> redisTemplate, TaskMapper taskMapper, TomatoClockMapper tomatoClockMapper) {
+    public RoomServiceImpl(UserRoomMapper userRoomMapper, UserMapper userMapper, RedisTemplate<String, Object> redisTemplate, TomatoClockMapper tomatoClockMapper) {
         this.userRoomMapper = userRoomMapper;
         this.userMapper = userMapper;
         this.redisTemplate = redisTemplate;
-        this.taskMapper = taskMapper;
         this.tomatoClockMapper = tomatoClockMapper;
     }
 
@@ -140,22 +138,15 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                 .stream()
                 .map(UserVo::new)
                 .peek(u -> {
-                    List<Long> taskIds = taskMapper.selectList(new LambdaQueryWrapper<>(Task.class)
-                                    .eq(Task::getUserId, u.getUserId())
-                                    .eq(Task::getTaskStatus, Task.Status.COMPLETED.getCode())
-                                    .ge(Task::getCreatedAt, start)
-                                    .le(Task::getCreatedAt, end))
-                            .stream()
-                            .map(Task::getTaskId)
-                            .distinct()
-                            .toList();
                     AtomicLong tomatoDuration = new AtomicLong(0);
-                    if (!taskIds.isEmpty()){
-                        tomatoClockMapper.selectList(new LambdaQueryWrapper<>(TomatoClock.class)
-                                        .in(TomatoClock::getTaskId, taskIds)
-                                        .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode()))
-                                .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
-                    }
+                    tomatoClockMapper.selectList(
+                            new LambdaQueryWrapper<>(TomatoClock.class)
+                                    .eq(TomatoClock::getUserId, u.getUserId())
+                                    .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
+                                    .ge(TomatoClock::getCreatedAt, start)
+                                    .le(TomatoClock::getCreatedAt, end)
+                            )
+                            .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
                     u.setTomatoDuration(tomatoDuration.get());
                 })
                 .sorted(Comparator.comparing(UserVo::getTomatoDuration).reversed())
