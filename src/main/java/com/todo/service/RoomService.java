@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.todo.dto.RoomDto;
 import com.todo.entity.Room;
+import com.todo.service.impl.RoomServiceImpl;
 import com.todo.vo.RoomVo;
 import com.todo.vo.UserVo;
 
@@ -38,9 +39,11 @@ public interface RoomService extends IService<Room> {
 
     void requestJoin(Long roomId);
 
-    void acceptRequest(Long roomId, Long userId);
+    void handleRequest(Long roomId, Long userId, RoomServiceImpl.RoomRequestType roomRequestType);
 
     List<UserVo> findRequests(Long roomId);
 
     RoomVo getRoomInfo();
+
+    List<RoomVo> findRequests();
 }

@@ -3,8 +3,10 @@ package com.todo.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.todo.constant.RedisConstant;
 import com.todo.entity.Task;
+import com.todo.entity.TaskCategory;
 import com.todo.entity.TomatoClock;
 import com.todo.service.StatisticService;
+import com.todo.service.TaskCategoryService;
 import com.todo.service.TomatoClockService;
 import com.todo.service.UserService;
 import com.todo.util.UserContextUtil;
@@ -37,12 +39,14 @@ public class StatisticServiceImpl implements StatisticService {
     private final TomatoClockService tomatoClockService;
     private final HashMap<Long, String> taskIdNameMap;
     private final UserService userService;
+    private final TaskCategoryService taskCategoryService;
 
-    public StatisticServiceImpl(TaskServiceImpl taskServiceImpl, RedisTemplate<String, Object> redisTemplate, TomatoClockService tomatoClockService, UserService userService) {
+    public StatisticServiceImpl(TaskServiceImpl taskServiceImpl, RedisTemplate<String, Object> redisTemplate, TomatoClockService tomatoClockService, UserService userService, TaskCategoryService taskCategoryService) {
         this.taskServiceImpl = taskServiceImpl;
         this.redisTemplate = redisTemplate;
         this.tomatoClockService = tomatoClockService;
         this.userService = userService;
+        this.taskCategoryService = taskCategoryService;
         taskIdNameMap = new HashMap<>();
     }
 
@@ -82,39 +86,6 @@ public class StatisticServiceImpl implements StatisticService {
         return statisticVo;
     }
 
-    @Override
-    public StatisticVo statistic() {
-        long timestamp = 1000 * LocalDate.ofInstant(Instant.now(), ZoneId.of("UTC+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
-        String key = RedisConstant.USER_STATISTIC + UserContextUtil.getUser().getUserId() + ":" + timestamp;
-
-        Object o = redisTemplate.opsForValue().get(key);
-        if (o != null) {
-            StatisticVo statisticVo = (StatisticVo) o;
-            statisticVo.setCached(true);
-            return statisticVo;
-        }
-        List<TaskVo> tasks = taskServiceImpl.findAll();
-
-        tasks.forEach(taskVo -> taskIdNameMap.put(taskVo.getTaskId(), taskVo.getTaskName()));
-
-        List<TomatoClock> tomatoClocks;
-        if (CollectionUtils.isEmpty(tasks)) {
-            tomatoClocks = new ArrayList<>();
-        } else {
-            tomatoClocks = tomatoClockService.list(
-                    new LambdaQueryWrapper<>(TomatoClock.class)
-                            .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
-                            .in(TomatoClock::getTaskId, tasks
-                                    .stream()
-                                    .map(TaskVo::getTaskId)
-                                    .collect(Collectors.toList()))
-            );
-        }
-        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
-
-        redisTemplate.opsForValue().set(key, statisticVo, 5, TimeUnit.MINUTES);
-        return statisticVo;
-    }
 
     @Override
     public List<UserVo> rankingList() {
@@ -123,7 +94,6 @@ public class StatisticServiceImpl implements StatisticService {
             if (obj instanceof List<?>){
                 return (List<UserVo>) obj;
             }
-
         }
 
         List<UserVo> userVos = rankingListStatistic();
@@ -198,7 +168,55 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
+    public StatisticVo statisticByCategory(Long categoryId, Long timestamp) {
+        TaskCategory taskCategory = taskCategoryService.getById(categoryId);
+        if (taskCategory == null || !Objects.equals(taskCategory.getUserId(), UserContextUtil.getUserId())){
+            throw new RuntimeException("不存在该分类");
+        }
+
+        long beginTimestamp = 1000 * LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
+        String key = RedisConstant.CATEGORY_STATISTIC + categoryId + ":" + beginTimestamp;
+
+        Object o = redisTemplate.opsForValue().get(key);
+        if (o != null) {
+            StatisticVo statisticVo = (StatisticVo) o;
+            statisticVo.setCached(true);
+            return statisticVo;
+        }
+
+        List<TaskVo> taskVos = taskCategoryService
+                .getAllTasks(categoryId)
+                .getData();
+
+        taskVos.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
+
+        List<TomatoClock> tomatoClocks;
+        if (CollectionUtils.isEmpty(taskVos)) {
+            tomatoClocks = new ArrayList<>();
+        } else {
+            tomatoClocks = tomatoClockService.list(
+                    new LambdaQueryWrapper<>(TomatoClock.class)
+                            .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
+                            .in(TomatoClock::getTaskId, taskVos
+                                    .stream()
+                                    .map(TaskVo::getTaskId)
+                                    .collect(Collectors.toList()))
+            );
+        }
+
+        StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
+
+        redisTemplate.opsForValue().set(key, statisticVo, 1, TimeUnit.MINUTES);
+        return statisticVo;
+    }
+
+    @Override
     public StatisticVo statisticByTask(Long taskId, Long timestamp) {
+        Task task = taskServiceImpl.getById(taskId);
+        if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())){
+            throw new RuntimeException("不存在该任务");
+        }
+
         long beginTimestamp = 1000 * LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8")).atStartOfDay().toEpochSecond(ZoneOffset.of("+8"));
         String key = RedisConstant.TASK_STATISTIC + taskId + ":" + beginTimestamp;
 
@@ -209,17 +227,10 @@ public class StatisticServiceImpl implements StatisticService {
             return statisticVo;
         }
 
-        Task task = taskServiceImpl.getById(taskId);
-
-        if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())){
-            throw new RuntimeException("不存在该任务");
-        }
-
         List<Task> tasks = taskServiceImpl.list(
                 new LambdaQueryWrapper<>(Task.class)
                         .eq(Task::getParentId, task.getParentId())
         );
-
 
         tasks.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
 
@@ -237,8 +248,12 @@ public class StatisticServiceImpl implements StatisticService {
     public StatisticVo simpleStatisticByTask(Long taskId) {
         Task task = taskServiceImpl.getById(taskId);
 
+        if (task == null || !Objects.equals(task.getUserId(), UserContextUtil.getUserId())){
+            throw new RuntimeException("不存在该任务");
+        }
+
         LambdaQueryWrapper<TomatoClock> queryWrapper = new LambdaQueryWrapper<>(TomatoClock.class)
-                .eq(TomatoClock::getUserId, task.getUserId())
+                .eq(TomatoClock::getParentId, task.getParentId())
                 .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode());
 
         AtomicInteger tomatoTimes = new AtomicInteger(0);
@@ -331,7 +346,7 @@ public class StatisticServiceImpl implements StatisticService {
         public long getStartEpochSecond(Long timestamp) {
             switch (this) {
                 case DAY -> {
-                    return LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("UTC+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
+                    return LocalDate.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("+8")).toEpochSecond(LocalTime.MIN, ZoneOffset.of("+8"));
                 }
                 case WEEK -> {
                     Calendar calendar = Calendar.getInstance(TimeZone.getDefault(), Locale.CHINA);

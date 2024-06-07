@@ -115,9 +115,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("邀请码不存在");
         }
         userRoomMapper.insert(new UserRoom(userId, roomId));
-
-        // 用户已经通过邀请码加入自习室  判断 用户以前是否申请过  如果申请过 删除申请
-        redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
+        this.list().forEach(r -> redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + r.getRoomId(), 0, userId.toString()));
     }
 
     @Override
@@ -143,8 +141,8 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
                             new LambdaQueryWrapper<>(TomatoClock.class)
                                     .eq(TomatoClock::getUserId, u.getUserId())
                                     .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
-                                    .ge(TomatoClock::getCreatedAt, start)
-                                    .le(TomatoClock::getCreatedAt, end)
+                                    .ge(TomatoClock::getStartedAt, start)
+                                    .le(TomatoClock::getCompletedAt, end)
                             )
                             .forEach(t -> tomatoDuration.addAndGet(t.getClockDuration()));
                     u.setTomatoDuration(tomatoDuration.get());
@@ -320,7 +318,17 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
     }
 
     @Override
-    public void acceptRequest(Long roomId, Long userId) {
+    public void handleRequest(Long roomId, Long userId, RoomRequestType roomRequestType) {
+        if (roomRequestType == RoomRequestType.ACCEPT){
+            UserRoom userRoom = userRoomMapper.selectOne(
+                    new LambdaQueryWrapper<>(UserRoom.class)
+                            .eq(UserRoom::getUserId, userId)
+            );
+            if (userRoom != null){
+                throw new RuntimeException("该用户已经加入某个自习室");
+            }
+        }
+
         User user = UserContextUtil.getUser();
         Room room = baseMapper.selectById(roomId);
 
@@ -347,7 +355,11 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
             throw new RuntimeException("申请不存在");
         }
 
-        userRoomMapper.insert(new UserRoom(userId, roomId));
+        if (roomRequestType == RoomRequestType.ACCEPT){
+            userRoomMapper.insert(new UserRoom(userId, roomId));
+            this.list().forEach(r -> redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + r.getRoomId(), 0, userId.toString()));
+        }
+
         redisTemplate.opsForList().remove(RedisConstant.ROOM_REQUEST_JOIN + roomId, 0, userId.toString());
 
         Long size = redisTemplate.opsForList().size(RedisConstant.ROOM_REQUEST_JOIN + roomId);
@@ -403,6 +415,21 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room>
         Room room = this.getOne(new LambdaQueryWrapper<>(Room.class)
                 .eq(Room::getRoomId, userRoom.getRoomId()));
         return new RoomVo(room);
+    }
+
+    @Override
+    public List<RoomVo> findRequests() {
+        Long userId = UserContextUtil.getUserId();
+        return this.list()
+                .stream()
+                .filter(room -> redisTemplate.opsForList().indexOf(RedisConstant.ROOM_REQUEST_JOIN + room.getRoomId(), userId.toString()) != null)
+                .map(RoomVo::new)
+                .collect(Collectors.toList());
+    }
+
+    public enum RoomRequestType {
+        ACCEPT,
+        REJECT
     }
 }
 

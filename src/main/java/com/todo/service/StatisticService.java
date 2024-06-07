@@ -15,8 +15,6 @@ public interface StatisticService {
 
     StatisticVo statistic(Long timestamp);
 
-    StatisticVo statistic();
-
     List<UserVo> rankingList();
 
     List<UserVo> rankingListStatistic();
@@ -24,4 +22,6 @@ public interface StatisticService {
     Result<List<StopReasonRatio>> statisticStopReason();
 
     DayTomatoStatistic simpleStatisticToday();
+
+    StatisticVo statisticByCategory(Long categoryId, Long timestamp);
 }

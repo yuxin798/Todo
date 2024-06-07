@@ -9,9 +9,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * 
@@ -61,7 +61,7 @@ public class TomatoClock implements Serializable {
     /**
      *
      */
-    @TableField(value = "stop_reason")
+    @TableField(value = "user_id")
     private Long userId;
 
     /**
@@ -94,6 +94,7 @@ public class TomatoClock implements Serializable {
     @TableField(value = "deleted")
     private Integer deleted;
 
+    @Serial
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 

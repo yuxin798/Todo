@@ -3,6 +3,7 @@ package com.todo.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.todo.dto.RoomDto;
 import com.todo.service.RoomService;
+import com.todo.service.impl.RoomServiceImpl;
 import com.todo.vo.Result;
 import com.todo.vo.RoomVo;
 import com.todo.vo.UserVo;
@@ -186,7 +187,22 @@ public class RoomController {
 
             @NotNull(message = "用户id不能为空")
             @Min(value = 1, message = "用户id必须大于等于1") Long userId) {
-        roomService.acceptRequest(roomId, userId);
+        roomService.handleRequest(roomId, userId, RoomServiceImpl.RoomRequestType.ACCEPT);
+        return Result.success();
+    }
+
+    /**
+     * 管理员同意用户加入自习室
+     */
+    @Operation(summary = "管理员拒绝用户加入自习室")
+    @PostMapping("/manager/rejectRequest")
+    public Result<?> rejectRequest(
+            @NotNull(message = "自习室id不能为空")
+            @Min(value = 1, message = "自习室id必须大于等于1") Long roomId,
+
+            @NotNull(message = "用户id不能为空")
+            @Min(value = 1, message = "用户id必须大于等于1") Long userId) {
+        roomService.handleRequest(roomId, userId, RoomServiceImpl.RoomRequestType.REJECT);
         return Result.success();
     }
 
@@ -200,5 +216,15 @@ public class RoomController {
             @Min(value = 1, message = "自习室id必须大于等于1") Long roomId) {
         List<UserVo> users = roomService.findRequests(roomId);
         return Result.success(users);
+    }
+
+    /**
+     * 管理员查询所有的加入自习室的请求
+     */
+    @Operation(summary = "用户查询所有申请加入的自习室")
+    @GetMapping("/user/requests")
+    public Result<List<RoomVo>> findRequests() {
+        List<RoomVo> roomVos = roomService.findRequests();
+        return Result.success(roomVos);
     }
 }

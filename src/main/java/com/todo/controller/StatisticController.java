@@ -36,13 +36,6 @@ public class StatisticController {
         return Result.success(statisticVo);
     }
 
-    @Operation(summary = "获得统计数据")
-    @GetMapping("/")
-    public Result<StatisticVo> statistic() {
-        StatisticVo statisticVo = statisticServiceImpl.statistic();
-        return Result.success(statisticVo);
-    }
-
     @Operation(summary = "获得简化版今日统计数据")
     @GetMapping("/simpleStatisticToday")
     public Result<DayTomatoStatistic> simpleStatisticToday() {
@@ -54,6 +47,13 @@ public class StatisticController {
     @GetMapping("/complex/{taskId}/{timestamp}")
     public Result<StatisticVo> statisticByTask(@PathVariable Long taskId, @PathVariable Long timestamp) {
         StatisticVo statisticVo = statisticServiceImpl.statisticByTask(taskId, timestamp);
+        return Result.success(statisticVo);
+    }
+
+    @Operation(summary = "每个清单集合的统计数据")
+    @GetMapping("/category/{categoryId}/{timestamp}")
+    public Result<StatisticVo> statisticByCategory(@PathVariable Long categoryId, @PathVariable Long timestamp) {
+        StatisticVo statisticVo = statisticServiceImpl.statisticByCategory(categoryId, timestamp);
         return Result.success(statisticVo);
     }
 

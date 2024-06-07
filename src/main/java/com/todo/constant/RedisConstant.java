@@ -17,6 +17,9 @@ public class RedisConstant {
     // 单个任务的统计信息
     public static final String TASK_STATISTIC = "task:statistic:";
 
+    // 单个清单集合的统计信息
+    public static final String CATEGORY_STATISTIC = "category:statistic:";
+
     public static final String RANKING_LIST = "ranking:user:duration";
     public static final String RANKING_LIST_TEMP = "ranking:user:duration:temp";
 }
