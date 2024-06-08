@@ -9,6 +9,7 @@ import com.todo.service.StatisticService;
 import com.todo.service.TaskCategoryService;
 import com.todo.service.TomatoClockService;
 import com.todo.service.UserService;
+import com.todo.util.DateUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
@@ -184,22 +185,24 @@ public class StatisticServiceImpl implements StatisticService {
             return statisticVo;
         }
 
-        List<TaskVo> taskVos = taskCategoryService
-                .getAllTasks(categoryId)
-                .getData();
+        List<Task> tasks = taskServiceImpl.list(
+                new LambdaQueryWrapper<>(Task.class)
+                        .eq(Task::getCategoryId, categoryId)
+                        .eq(Task::getUserId, UserContextUtil.getUserId())
+        );
 
-        taskVos.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
+        tasks.forEach(t -> taskIdNameMap.put(t.getTaskId(), t.getTaskName()));
 
         List<TomatoClock> tomatoClocks;
-        if (CollectionUtils.isEmpty(taskVos)) {
+        if (CollectionUtils.isEmpty(tasks)) {
             tomatoClocks = new ArrayList<>();
         } else {
             tomatoClocks = tomatoClockService.list(
                     new LambdaQueryWrapper<>(TomatoClock.class)
                             .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
-                            .in(TomatoClock::getTaskId, taskVos
+                            .in(TomatoClock::getTaskId, tasks
                                     .stream()
-                                    .map(TaskVo::getTaskId)
+                                    .map(Task::getTaskId)
                                     .collect(Collectors.toList()))
             );
         }
