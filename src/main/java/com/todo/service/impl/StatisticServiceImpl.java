@@ -9,7 +9,6 @@ import com.todo.service.StatisticService;
 import com.todo.service.TaskCategoryService;
 import com.todo.service.TomatoClockService;
 import com.todo.service.UserService;
-import com.todo.util.DateUtil;
 import com.todo.util.UserContextUtil;
 import com.todo.vo.Result;
 import com.todo.vo.TaskVo;
@@ -240,6 +239,7 @@ public class StatisticServiceImpl implements StatisticService {
         List<TomatoClock> tomatoClocks = tomatoClockService.list(
                 new LambdaQueryWrapper<>(TomatoClock.class)
                         .eq(TomatoClock::getParentId, task.getParentId())
+                        .eq(TomatoClock::getClockStatus, TomatoClock.Status.COMPLETED.getCode())
         );
         StatisticVo statisticVo = getStatisticVo(tomatoClocks, timestamp);
 

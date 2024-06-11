@@ -289,6 +289,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>
                 .in(Task::getTaskStatus, TODO_TODAY.getCode(), COMPLETED.getCode())
                 .ge(Task::getCreatedAt, firstDayOfMonth)
                 .le(Task::getCreatedAt, lastDayOfMonth)
+                .isNull(Task::getCategoryId)
                 .orderByAsc(Task::getTaskStatus)
                 .orderByAsc(Task::getCreatedAt);
 
