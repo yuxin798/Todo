@@ -1,6 +1,6 @@
 server:
   port: 80
-ip: 8.130.163.41
+ip: ~~~
 spring:
   application:
     name: Todo-Application
@@ -8,15 +8,14 @@ spring:
     url: jdbc:mysql://${ip}:3307/todo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
-#    password: 552010.a
+    password: ~~~~
     type: com.alibaba.druid.pool.DruidDataSource
   data:
     redis:
       host: ${ip}
       port: 6379
       database: 0
-      password: 147258369
+      password: ~~~~
       timeout: 30000s
       lettuce:
         pool:
@@ -34,7 +33,7 @@ spring:
     default-encoding: UTF-8
     host: smtp.163.com
     username: yuxin_798@163.com
-    password: AZQSRBWJFIZIZZCA
+    password: ~~~
     properties:
       mail:
         smtp:
@@ -49,7 +48,7 @@ spring:
     addresses: ${ip}
     port: 5672
     username: guest
-    password: bI8yA6hP7vU1vH0sV2uR6yW9dQ8oJ6qU
+    password: ~~~
     listener:
       direct:
         retry:
